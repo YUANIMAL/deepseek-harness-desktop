@@ -23,7 +23,7 @@ A native **macOS desktop app** for [DeepSeek Harness](https://github.com/deepsee
 3. On first launch, **right-click → Open** (the build is unsigned; see [Signing](#signing--notarization)).
 4. Enter your DeepSeek API key in **Settings**.
 
-**Requirements:** an Apple Silicon Mac (M1/M2/M3/M4) and a DeepSeek API key.
+**Requirements:** an Apple Silicon Mac (any M-series chip — M1/M2/M3/M4/M5 or newer) and a DeepSeek API key.
 
 ## Usage
 

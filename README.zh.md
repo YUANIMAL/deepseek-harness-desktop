@@ -23,7 +23,7 @@
 3. 首次启动请**右键 → 打开**（该版本未签名，见[签名与公证](#签名与公证)）。
 4. 在 **Settings** 里填入你的 DeepSeek API key。
 
-**要求：** Apple 芯片 Mac（M1/M2/M3/M4）+ 一个 DeepSeek API key。
+**要求：** Apple 芯片 Mac（任意 M 系列芯片——M1/M2/M3/M4/M5 及更新）+ 一个 DeepSeek API key。
 
 ## 使用
 
