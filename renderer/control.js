@@ -3,6 +3,7 @@
 const api = window.api;
 let state = null;
 let pluginFilter = { q: '', category: 'all' };
+let liveCatalog = null; // renderer-side cache of plugins fetched from the GitHub dsh-plugin topic
 
 const $ = (sel) => document.querySelector(sel);
 const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) =>
@@ -84,6 +85,15 @@ function renderUpdates() {
   $('#up-current').textContent = state.version || '\u2014';
 }
 
+function liveInstalled(p) {
+  const target = String(p.name).toLowerCase();
+  const deps = (state.plugins.installed && state.plugins.installed.deps) || [];
+  return deps.some((n) => {
+    const name = String(n).toLowerCase();
+    return name === target || name.endsWith(`/${target}`);
+  });
+}
+
 function renderPlugins() {
   const catalog = state.plugins.catalog;
   const sel = $('#pl-category');
@@ -107,18 +117,28 @@ function renderPlugins() {
   profileSel.value = state.plugins.profile;
   profileSel.disabled = true; // profile is app-level config for now
 
+  // Bundled verified catalog + live-only entries from the GitHub topic.
+  const bundled = catalog.plugins.map((p) => ({ ...p }));
+  const bundledSpecs = new Set(bundled.map((p) => p.spec.toLowerCase()));
+  const liveExtra = (liveCatalog || [])
+    .filter((p) => !bundledSpecs.has(p.spec.toLowerCase()))
+    .map((p) => ({ ...p, installed: liveInstalled(p) }));
+  const all = [...bundled, ...liveExtra];
+
   const q = pluginFilter.q.toLowerCase();
-  const list = catalog.plugins.filter((p) =>
+  const list = all.filter((p) =>
     (pluginFilter.category === 'all' || p.category === pluginFilter.category) &&
     (!q || p.name.toLowerCase().includes(q) || desc(p).toLowerCase().includes(q))
   );
 
-  $('#pl-count').textContent = t('plugins.count', { n: list.length, t: catalog.plugins.length });
+  $('#pl-count').textContent = t('plugins.count', { n: list.length, t: all.length });
 
   const ul = $('#pl-list');
   ul.innerHTML = '';
   for (const p of list) {
     const li = document.createElement('li');
+    const stars = p.stars ? `<span class="muted">\u2b50 ${p.stars}</span>` : '';
+    const liveBadge = p.live ? `<span class="badge">${esc(t('plugins.live'))}</span>` : '';
     const badge = p.installed
       ? `<span class="badge installed">${esc(t('plugins.installed'))}</span>`
       : `<span class="badge">${esc(p.category)}</span>`;
@@ -130,6 +150,8 @@ function renderPlugins() {
         <div class="plugin-title">
           <span class="plugin-name">${esc(p.name)}</span>
           <span class="plugin-owner">${esc(p.owner)}</span>
+          ${stars}
+          ${liveBadge}
           ${badge}
         </div>
         <p class="plugin-desc">${esc(desc(p))}</p>
@@ -142,8 +164,36 @@ function renderPlugins() {
   }
 }
 
+async function fetchLivePlugins() {
+  const statusEl = $('#pl-live-status');
+  statusEl.textContent = t('plugins.fetching');
+  try {
+    const results = [];
+    for (const page of [1, 2]) {
+      const res = await fetch(`https://api.github.com/search/repositories?q=topic:dsh-plugin&sort=updated&per_page=100&page=${page}`);
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const data = await res.json();
+      results.push(...(data.items || []));
+    }
+    liveCatalog = results.map((r) => ({
+      name: r.name,
+      owner: r.owner ? r.owner.login : '',
+      url: r.html_url,
+      category: 'live',
+      description: { en: r.description || '', zh: '' },
+      stars: r.stargazers_count || 0,
+      spec: `github:${r.owner ? r.owner.login : ''}/${r.name}`,
+      live: true,
+    }));
+    renderPlugins();
+    statusEl.textContent = t('plugins.liveCount', { n: liveCatalog.length });
+  } catch (err) {
+    statusEl.textContent = t('plugins.liveFailed', { m: err.message });
+  }
+}
+
 function switchTab(name) {
-  document.querySelectorAll('.tab-btn').forEach((b) => b.classList.toggle('active', b.dataset.tab === name));
+  document.querySelectorAll('.side-btn').forEach((b) => b.classList.toggle('active', b.dataset.tab === name));
   document.querySelectorAll('.tab').forEach((x) => x.classList.toggle('active', x.id === `tab-${name}`));
 }
 
@@ -172,7 +222,7 @@ async function setLanguage(lang) {
 }
 
 // --- wiring ---
-document.querySelectorAll('.tab-btn').forEach((b) => b.addEventListener('click', () => {
+document.querySelectorAll('.side-btn').forEach((b) => b.addEventListener('click', () => {
   switchTab(b.dataset.tab);
   if (b.dataset.tab === 'settings') loadSettings();
 }));
@@ -215,6 +265,7 @@ api.onUpdateEvent((e) => {
 
 $('#pl-search').addEventListener('input', (e) => { pluginFilter.q = e.target.value; renderPlugins(); });
 $('#pl-category').addEventListener('change', (e) => { pluginFilter.category = e.target.value; renderPlugins(); });
+$('#btn-plugins-live').addEventListener('click', fetchLivePlugins);
 $('#btn-clear-log').addEventListener('click', () => { $('#log').textContent = ''; });
 
 $('#pl-list').addEventListener('click', async (e) => {
