@@ -621,6 +621,9 @@ async function init() {
   startHealthMonitor();
   setupAutoUpdate();
   createTray();
+  // Auto-open the Control Center so the sidebar (plugins / agents / settings)
+  // is immediately visible instead of hidden behind a menu item.
+  createControlWindow();
 
   try {
     globalShortcut.register('CommandOrControl+Shift+Space', showMainWindow);
