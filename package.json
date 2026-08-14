@@ -32,11 +32,13 @@
       "renderer/**/*",
       "agent/**/*",
       "runtime/**/*",
+      "assets/trayTemplate.png",
       "harness.tar"
     ],
     "asarUnpack": [
       "agent/**/*",
       "runtime/**/*",
+      "assets/trayTemplate.png",
       "harness.tar"
     ],
     "electronDist": "node_modules/electron/dist",

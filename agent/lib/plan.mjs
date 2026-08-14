@@ -38,3 +38,24 @@ export async function decompose(ctrl, goal, n, { timeoutMs, coordinatorModel } =
     await ctrl.stop(coordinator.id);
   }
 }
+
+// Merge several worker results into one coherent final answer.
+export async function synthesize(ctrl, goal, results, { timeoutMs, coordinatorModel } = {}) {
+  const synth = await ctrl.spawn({
+    name: 'synthesizer',
+    model: coordinatorModel ?? 'deepseek-v4-pro',
+    persona: 'You are a synthesis coordinator. Combine results into ONE coherent, well-organized final answer.',
+  });
+  try {
+    const parts = results.map((r, i) => `### Worker ${i + 1}\n${r}`).join('\n\n');
+    const prompt =
+      `Combine the following independent results into ONE coherent, well-organized final answer for the goal. ` +
+      `Preserve key facts, reconcile any conflicts, and do not omit important details.\n\n` +
+      `Goal: ${goal}\n\n${parts}\n\nFinal answer:`;
+    // await inside try: the finally must not stop the runtime while ask() is in flight.
+    const answer = await ctrl.ask(synth.id, prompt, { timeoutMs });
+    return answer;
+  } finally {
+    await ctrl.stop(synth.id);
+  }
+}

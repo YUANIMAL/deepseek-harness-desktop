@@ -9,15 +9,16 @@ import { loadCredentials } from '../lib/credentials.mjs';
 import { Controller } from '../lib/controller.mjs';
 import { startDaemon, homeDir } from '../lib/daemon.mjs';
 import { ensureDaemon, request } from '../lib/client.mjs';
-import { decompose } from '../lib/plan.mjs';
+import { decompose, synthesize } from '../lib/plan.mjs';
 
 const HELP = `
 dsh-agent — run & operate local DeepSeek Harness agents
 
 One-shot (no daemon):
   dsh-agent run "<task>"                 run one task on a fresh local agent
-  dsh-agent team "<goal>" --n <k>        auto-split into <k> subtasks, run in parallel
-                                       (add --broadcast to send the same goal to all)
+  dsh-agent team "<goal>" --n <k>        auto-split into <k> subtasks, run in parallel,
+                                       then merge results into one final answer
+                                       (--broadcast: same goal to all; --raw: no merge)
 
 Persistent (via a background daemon, auto-started):
   dsh-agent spawn [name]                 start an idle local agent, print its id
@@ -32,6 +33,7 @@ Options (run / spawn / team):
   --model <m>         worker model: deepseek-v4-flash (default) | deepseek-v4-pro
   --coordinator-model <m>  planner model for team decomposition (default deepseek-v4-pro)
   --broadcast         team: send the same goal to all workers (no decomposition)
+  --raw               team: skip the final synthesis, print raw worker results
   --persona <text>    override the agent system prompt
   --timeout <ms>      per-prompt timeout
 
@@ -57,6 +59,7 @@ function argParse(argv) {
     else if (a === '--n') opts.n = parseInt(next(a), 10);
     else if (a === '--coordinator-model') opts.coordinatorModel = next(a);
     else if (a === '--broadcast') opts.broadcast = true;
+    else if (a === '--raw') opts.raw = true;
     else if (a === '--all') opts.all = true;
     else opts.args.push(a);
   }
@@ -188,7 +191,26 @@ async function main() {
     const results = await Promise.allSettled(
       workers.map((w, i) => ctrl.ask(w.id, tasks[i], { onNotification: progress(w.name), timeoutMs: opts.timeout })),
     );
-    console.log('\n=== team results ===');
+
+    // Merge successful worker results into one final answer (unless --raw).
+    const fulfilled = [];
+    results.forEach((r, i) => { if (r.status === 'fulfilled') fulfilled.push(r.value); });
+    let synthesized = null;
+    if (!opts.raw && fulfilled.length >= 2) {
+      console.error('\u25b8 synthesizing final answer\u2026');
+      try {
+        synthesized = await synthesize(ctrl, goal, fulfilled, { timeoutMs: opts.timeout, coordinatorModel: opts.coordinatorModel });
+      } catch (e) {
+        console.error(`  ! synthesis failed (${e.message}) \u2014 showing raw results.`);
+      }
+    }
+
+    if (synthesized) {
+      console.log('\n=== final answer ===\n' + synthesized);
+      console.log('\n--- worker results ---');
+    } else {
+      console.log('\n=== team results ===');
+    }
     results.forEach((r, i) => {
       if (r.status === 'fulfilled') console.log(`\n[${workers[i].name}] ${r.value}`);
       else console.log(`\n[${workers[i].name}] ERROR: ${r.reason?.message ?? r.reason}`);

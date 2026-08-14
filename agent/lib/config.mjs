@@ -5,6 +5,7 @@ import path from 'node:path';
 const CANDIDATES = [
   () => process.env.DSH_HARNESS || '',
   () => path.join(os.homedir(), 'deepseek-harness'),
+  () => '/Users/yuanzhanghao/deepseek-harness',
 ];
 
 export function detectHarness() {
