@@ -238,7 +238,7 @@ function createControlWindow() {
     height: 720,
     minWidth: 760,
     minHeight: 520,
-    title: 'DSH Control Center',
+    title: 'DeepSeek Control Center',
     webPreferences: {
       contextIsolation: true,
       nodeIntegration: false,

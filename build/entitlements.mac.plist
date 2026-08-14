@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<!--
+  DSH Desktop — macOS hardened runtime entitlements（非 Mac App Store / Developer ID 分发）
+
+  electron-builder 会用这份文件在签名时给 .app 打上 hardened runtime 权限声明。
+  这是 Electron 应用在 hardened runtime 下运行所需的最小集合（与 Electron 官方
+  文档 "Signing and Notarizing macOS Builds" 一致）。
+  不要删除或改为 false，否则启用 hardenedRuntime 后应用可能启动即崩溃
+  （例如 arm64 (Apple Silicon) 上缺少 allow-jit 时 V8/JIT 无法工作）。
+-->
+<plist version="1.0">
+  <dict>
+    <!-- 允许 JIT 编译。Electron/Chromium 的 V8 引擎必需（尤其 Apple Silicon 上）。 -->
+    <key>com.apple.security.cs.allow-jit</key>
+    <true/>
+
+    <!-- 允许可写的可执行内存（MAP_JIT / 非可执行堆页）。部分原生模块依赖。 -->
+    <key>com.apple.security.cs.allow-unsigned-executable-memory</key>
+    <true/>
+
+    <!-- 允许 dyld 注入环境变量（DYLD_*）。某些原生模块 / 调试工具需要；
+         若确认不需要，可删掉这一项以收紧权限。 -->
+    <key>com.apple.security.cs.allow-dyld-environment-variables</key>
+    <true/>
+  </dict>
+</plist>

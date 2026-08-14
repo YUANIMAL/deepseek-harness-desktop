@@ -17,9 +17,9 @@
     "electron-builder": "^26.15.3"
   },
   "build": {
-    "appId": "com.dsh.desktop",
-    "productName": "DSH Desktop",
-    "artifactName": "DSH-Desktop-${version}-${arch}.${ext}",
+    "appId": "com.deepseek.desktop",
+    "productName": "DeepSeek Desktop",
+    "artifactName": "DeepSeek-Desktop-${version}-${arch}.${ext}",
     "directories": {
       "output": "dist",
       "buildResources": "assets"
@@ -45,10 +45,14 @@
         "dmg"
       ],
       "category": "public.app-category.developer-tools",
-      "icon": "assets/icon.icns"
+      "icon": "assets/icon.icns",
+      "hardenedRuntime": true,
+      "entitlements": "build/entitlements.mac.plist",
+      "gatekeeperAssess": false,
+      "notarize": true
     },
     "dmg": {
-      "title": "DSH Desktop ${version}",
+      "title": "DeepSeek Desktop ${version}",
       "icon": "assets/icon.icns",
       "contents": [
         {
