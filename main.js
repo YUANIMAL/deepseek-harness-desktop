@@ -45,6 +45,24 @@ function log(line) {
   }
 }
 
+const MAIN_STRINGS = {
+  en: {
+    file: 'File', edit: 'Edit', view: 'View', help: 'Help',
+    controlCenter: 'Control Center', openGithub: 'Open GitHub repository',
+    communityPlugins: 'Community plugins', showApp: 'Show DeepSeek Desktop', quit: 'Quit',
+  },
+  zh: {
+    file: '文件', edit: '编辑', view: '视图', help: '帮助',
+    controlCenter: '控制中心', openGithub: '打开 GitHub 仓库',
+    communityPlugins: '社区插件', showApp: '显示 DeepSeek Desktop', quit: '退出',
+  },
+};
+
+function tMain(key) {
+  const d = (cfg && MAIN_STRINGS[cfg.language]) || MAIN_STRINGS.en;
+  return d[key] || MAIN_STRINGS.en[key] || key;
+}
+
 function notify(title, body) {
   try {
     if (Notification.isSupported()) new Notification({ title, body }).show();
@@ -63,6 +81,7 @@ function showMainWindow() {
 // Menu-bar tray: keeps the app reachable even with all windows closed.
 function createTray() {
   try {
+    if (tray) { tray.destroy(); tray = null; }
     const icon = nativeImage.createFromPath(TRAY_ICON);
     if (icon.isEmpty()) {
       log('Tray icon not found — skipping tray.');
@@ -72,10 +91,10 @@ function createTray() {
     tray = new Tray(icon);
     tray.setToolTip('DeepSeek Desktop');
     tray.setContextMenu(Menu.buildFromTemplate([
-      { label: 'Show DeepSeek Desktop', click: showMainWindow },
-      { label: 'Control Center', click: () => createControlWindow() },
+      { label: tMain('showApp'), click: showMainWindow },
+      { label: tMain('controlCenter'), click: () => createControlWindow() },
       { type: 'separator' },
-      { label: 'Quit', click: () => app.quit() },
+      { label: tMain('quit'), click: () => app.quit() },
     ]));
     tray.on('click', showMainWindow);
     log('Tray icon ready.');
@@ -349,19 +368,19 @@ function buildMenu() {
       submenu: [{ role: 'about' }, { type: 'separator' }, { role: 'quit' }],
     }] : []),
     {
-      label: 'File',
+      label: tMain('file'),
       submenu: [
-        { label: 'Control Center', accelerator: 'CmdOrCtrl+Shift+P', click: () => createControlWindow() },
+        { label: tMain('controlCenter'), accelerator: 'CmdOrCtrl+Shift+P', click: () => createControlWindow() },
         { type: 'separator' },
         process.platform === 'darwin' ? { role: 'close' } : { role: 'quit' },
       ],
     },
     {
-      label: 'Edit',
+      label: tMain('edit'),
       submenu: [{ role: 'undo' }, { role: 'redo' }, { type: 'separator' }, { role: 'cut' }, { role: 'copy' }, { role: 'paste' }, { role: 'selectAll' }],
     },
     {
-      label: 'View',
+      label: tMain('view'),
       submenu: [
         { role: 'reload' }, { role: 'toggleDevTools' }, { type: 'separator' },
         { role: 'resetZoom' }, { role: 'zoomIn' }, { role: 'zoomOut' }, { type: 'separator' },
@@ -369,10 +388,10 @@ function buildMenu() {
       ],
     },
     {
-      label: 'Help',
+      label: tMain('help'),
       submenu: [
-        { label: 'Open GitHub repository', click: () => shell.openExternal('https://github.com/deepseek-ai/deepseek-harness') },
-        { label: 'Community plugins', click: () => createControlWindow() },
+        { label: tMain('openGithub'), click: () => shell.openExternal('https://github.com/deepseek-ai/deepseek-harness') },
+        { label: tMain('communityPlugins'), click: () => createControlWindow() },
       ],
     },
   ];
@@ -444,6 +463,7 @@ function registerIpc() {
   ipcMain.handle('backend-restart', async () => { await restartBackend(); return collectState(); });
   ipcMain.handle('backend-url', () => `http://127.0.0.1:${cfg.webPort}`);
   ipcMain.handle('open-control', () => { createControlWindow(); return true; });
+  ipcMain.handle('get-language', () => cfg.language || 'en');
 
   ipcMain.handle('update-check', async () => {
     if (!autoUpdater) return { ok: false, error: 'Auto-update unavailable (dev or unsigned build)' };
@@ -550,12 +570,25 @@ function registerIpc() {
     }
   });
 
+  ipcMain.handle('set-language', (_e, lang) => {
+    if (lang !== 'en' && lang !== 'zh') return { ok: false, error: 'invalid language' };
+    cfg.language = lang;
+    config.save(cfg);
+    buildMenu();
+    createTray();
+    return { ok: true, language: lang };
+  });
+
   ipcMain.handle('open-external', (_e, url) => shell.openExternal(String(url)));
   ipcMain.handle('open-github', () => shell.openExternal('https://github.com/deepseek-ai/deepseek-harness'));
 }
 
 async function init() {
   cfg = config.load();
+  if (!cfg.language) {
+    cfg.language = (app.getLocale() || '').toLowerCase().startsWith('zh') ? 'zh' : 'en';
+    config.save(cfg);
+  }
   harnessPath = (await resolveHarness()) || harness.detectHarnessPath(cfg.harnessPath);
   if (harnessPath && !cfg.harnessPath) {
     cfg.harnessPath = harnessPath;

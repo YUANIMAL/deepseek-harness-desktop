@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>DSH Control Center</title>
+  <title>DeepSeek Control Center</title>
   <link rel="stylesheet" href="control.css" />
 </head>
 <body>
@@ -11,52 +11,56 @@
     <div class="brand">
       <span class="logo">&#9670;</span>
       <div>
-        <h1>DSH Control Center</h1>
+        <h1 data-i18n="app.title">DeepSeek Control Center</h1>
         <p class="sub" id="harness-path">loading&hellip;</p>
       </div>
     </div>
     <div class="chips">
       <span class="chip" id="chip-backend">backend: &mdash;</span>
       <span class="chip" id="chip-git">git: &mdash;</span>
+      <select id="lang-select" class="lang-select" title="Language / 语言">
+        <option value="en">English</option>
+        <option value="zh">中文</option>
+      </select>
     </div>
   </header>
 
   <nav class="tabs">
-    <button class="tab-btn active" data-tab="overview">Overview</button>
-    <button class="tab-btn" data-tab="updates">Updates</button>
-    <button class="tab-btn" data-tab="plugins">Community Plugins</button>
-    <button class="tab-btn" data-tab="agents">Local Agents</button>
-    <button class="tab-btn" data-tab="settings">Settings</button>
+    <button class="tab-btn active" data-tab="overview" data-i18n="tab.overview">Overview</button>
+    <button class="tab-btn" data-tab="updates" data-i18n="tab.updates">Updates</button>
+    <button class="tab-btn" data-tab="plugins" data-i18n="tab.plugins">Community Plugins</button>
+    <button class="tab-btn" data-tab="agents" data-i18n="tab.agents">Local Agents</button>
+    <button class="tab-btn" data-tab="settings" data-i18n="tab.settings">Settings</button>
   </nav>
 
   <main>
     <!-- Overview -->
     <section id="tab-overview" class="tab active">
       <div class="card">
-        <h2>Harness source</h2>
+        <h2 data-i18n="overview.harness">Harness source</h2>
         <dl class="kv">
-          <dt>Checkout path</dt><dd id="ov-path">&mdash;</dd>
-          <dt>Built CLI</dt><dd id="ov-cli">&mdash;</dd>
-          <dt>Branch / commit</dt><dd id="ov-commit">&mdash;</dd>
-          <dt>Sync</dt><dd id="ov-sync">&mdash;</dd>
+          <dt data-i18n="overview.checkout">Checkout path</dt><dd id="ov-path">&mdash;</dd>
+          <dt data-i18n="overview.cli">Built CLI</dt><dd id="ov-cli">&mdash;</dd>
+          <dt data-i18n="overview.commit">Branch / commit</dt><dd id="ov-commit">&mdash;</dd>
+          <dt data-i18n="overview.sync">Sync</dt><dd id="ov-sync">&mdash;</dd>
         </dl>
         <div class="row">
-          <button class="btn" id="btn-open-github">Open GitHub repo</button>
-          <button class="btn" id="btn-open-web">Open web UI</button>
+          <button class="btn" id="btn-open-github" data-i18n="overview.openGithub">Open GitHub repo</button>
+          <button class="btn" id="btn-open-web" data-i18n="overview.openWeb">Open web UI</button>
         </div>
       </div>
 
       <div class="card">
-        <h2>Backend (dsh web)</h2>
+        <h2 data-i18n="overview.backend">Backend (dsh web)</h2>
         <dl class="kv">
-          <dt>URL</dt><dd id="ov-url">&mdash;</dd>
-          <dt>Status</dt><dd id="ov-backend">&mdash;</dd>
-          <dt>Plugin profile</dt><dd id="ov-profile">&mdash;</dd>
+          <dt data-i18n="overview.url">URL</dt><dd id="ov-url">&mdash;</dd>
+          <dt data-i18n="overview.status">Status</dt><dd id="ov-backend">&mdash;</dd>
+          <dt data-i18n="overview.profile">Plugin profile</dt><dd id="ov-profile">&mdash;</dd>
         </dl>
         <div class="row">
-          <button class="btn" id="btn-backend-start">Start</button>
-          <button class="btn" id="btn-backend-stop">Stop</button>
-          <button class="btn" id="btn-backend-restart">Restart</button>
+          <button class="btn" id="btn-backend-start" data-i18n="btn.start">Start</button>
+          <button class="btn" id="btn-backend-stop" data-i18n="btn.stop">Stop</button>
+          <button class="btn" id="btn-backend-restart" data-i18n="btn.restart">Restart</button>
         </div>
       </div>
     </section>
@@ -64,16 +68,16 @@
     <!-- Updates -->
     <section id="tab-updates" class="tab">
       <div class="card">
-        <h2>App updates</h2>
+        <h2 data-i18n="updates.title">App updates</h2>
         <dl class="kv">
-          <dt>Current version</dt><dd id="up-current">&mdash;</dd>
-          <dt>Status</dt><dd id="up-status">&mdash;</dd>
+          <dt data-i18n="updates.current">Current version</dt><dd id="up-current">&mdash;</dd>
+          <dt data-i18n="updates.status">Status</dt><dd id="up-status">&mdash;</dd>
         </dl>
         <div class="row">
-          <button class="btn btn-accent" id="btn-check">Check for updates</button>
-          <button class="btn" id="btn-install" disabled>Restart &amp; install</button>
+          <button class="btn btn-accent" id="btn-check" data-i18n="updates.check">Check for updates</button>
+          <button class="btn" id="btn-install" data-i18n="updates.install" disabled>Restart &amp; install</button>
         </div>
-        <p class="hint">Auto-update checks GitHub Releases on launch and every 4 hours. It requires a <strong>signed</strong> build — unsigned builds can&rsquo;t self-update on macOS.</p>
+        <p class="hint" data-i18n="updates.hint">Auto-update checks GitHub Releases on launch and every 4 hours. It requires a signed build — unsigned builds can&rsquo;t self-update on macOS.</p>
       </div>
     </section>
 
@@ -81,10 +85,9 @@
     <section id="tab-plugins" class="tab">
       <div class="card">
         <div class="plugins-toolbar">
-          <input id="pl-search" type="search" placeholder="Search plugins&hellip;" />
+          <input id="pl-search" type="search" data-i18n-placeholder="plugins.search" placeholder="Search plugins&hellip;" />
           <select id="pl-category"></select>
           <select id="pl-profile"></select>
-          <button class="btn" id="btn-lang">中文</button>
           <span class="muted" id="pl-count"></span>
         </div>
         <ul id="pl-list" class="plugin-list"></ul>
@@ -94,21 +97,21 @@
     <!-- Local Agents -->
     <section id="tab-agents" class="tab">
       <div class="card">
-        <h2>Run a local agent team</h2>
-        <label class="field-label" for="agent-goal">Goal / task</label>
-        <textarea id="agent-goal" rows="3" placeholder="e.g. Research three ways to do X and pick the best"></textarea>
+        <h2 data-i18n="agents.title">Run a local agent team</h2>
+        <label class="field-label" for="agent-goal" data-i18n="agents.goal">Goal / task</label>
+        <textarea id="agent-goal" rows="3" data-i18n-placeholder="agents.goalPlaceholder" placeholder="e.g. Research three ways to do X and pick the best"></textarea>
         <div class="row" style="margin-top:10px">
-          <label class="inline">Workers <input id="agent-n" type="number" min="1" max="8" value="2" /></label>
-          <label class="inline"><input id="agent-broadcast" type="checkbox" /> broadcast (same goal to all)</label>
-          <input id="agent-workspace" type="text" placeholder="workspace dir (optional)" />
+          <label class="inline"><span data-i18n="agents.workers">Workers</span> <input id="agent-n" type="number" min="1" max="8" value="2" /></label>
+          <label class="inline"><input id="agent-broadcast" type="checkbox" /> <span data-i18n="agents.broadcast">broadcast (same goal to all)</span></label>
+          <input id="agent-workspace" type="text" data-i18n-placeholder="agents.workspace" placeholder="workspace dir (optional)" />
         </div>
         <div class="row" style="margin-top:10px">
-          <button class="btn btn-accent" id="btn-agent-run">Run one agent</button>
-          <button class="btn btn-accent" id="btn-agent-team">Run team (auto-split)</button>
-          <button class="btn" id="btn-agent-list">List agents</button>
-          <button class="btn btn-danger" id="btn-agent-stop">Stop all</button>
+          <button class="btn btn-accent" id="btn-agent-run" data-i18n="agents.run">Run one agent</button>
+          <button class="btn btn-accent" id="btn-agent-team" data-i18n="agents.team">Run team (auto-split)</button>
+          <button class="btn" id="btn-agent-list" data-i18n="agents.list">List agents</button>
+          <button class="btn btn-danger" id="btn-agent-stop" data-i18n="agents.stop">Stop all</button>
         </div>
-        <p class="hint">Agents are real local DeepSeek Harness runtimes (deepseek-v4). "Run team" auto-splits the goal into N subtasks with a coordinator, then runs them in parallel. Progress streams to the log panel below.</p>
+        <p class="hint" data-i18n="agents.hint">Agents are real local DeepSeek Harness runtimes (deepseek-v4). "Run team" auto-splits the goal into N subtasks with a coordinator, then runs them in parallel and merges the results. Progress streams to the log panel below.</p>
         <pre id="agent-out" class="agent-out"></pre>
       </div>
     </section>
@@ -116,21 +119,33 @@
     <!-- Settings -->
     <section id="tab-settings" class="tab">
       <div class="card">
-        <h2>API credentials</h2>
-        <p class="hint">Stored in <code id="settings-file"></code>. Keys are masked; base URLs show in full. Leave a key blank to keep the current value. New keys apply to the next agent run.</p>
+        <h2 data-i18n="settings.title">API credentials</h2>
+        <p class="hint" data-i18n="settings.hint">Keys are masked; base URLs show in full. Leave a key blank to keep the current value. New keys apply to the next agent run.</p>
+        <p class="muted" id="settings-file"></p>
 
         <label class="field-label" for="s-deepseek-key">DEEPSEEK_API_KEY</label>
         <input id="s-deepseek-key" type="password" placeholder="sk-…" autocomplete="off" />
 
-        <label class="field-label" for="s-deepseek-url">DEEPSEEK_BASE_URL <span class="muted">(optional, OpenAI-compatible)</span></label>
+        <label class="field-label" for="s-deepseek-url">DEEPSEEK_BASE_URL <span class="muted" data-i18n="settings.urlNote">(optional, OpenAI-compatible)</span></label>
         <input id="s-deepseek-url" type="text" placeholder="https://api.deepseek.com" />
 
-        <label class="field-label" for="s-extra">Other API keys <span class="muted">(one KEY=value per line)</span></label>
+        <label class="field-label" for="s-extra"><span data-i18n="settings.other">Other API keys</span> <span class="muted" data-i18n="settings.otherNote">(one KEY=value per line)</span></label>
         <textarea id="s-extra" rows="5" placeholder="OPENAI_API_KEY=…&#10;ANTHROPIC_API_KEY=…"></textarea>
 
         <div class="row" style="margin-top:12px">
-          <button class="btn btn-accent" id="btn-settings-save">Save</button>
+          <button class="btn btn-accent" id="btn-settings-save" data-i18n="settings.save">Save</button>
           <span id="settings-status" class="muted"></span>
+        </div>
+      </div>
+
+      <div class="card">
+        <h2 data-i18n="settings.language">Language</h2>
+        <p class="hint" data-i18n="settings.langHint">Switch the interface language (applies immediately).</p>
+        <div class="row">
+          <select id="lang-select-settings" class="lang-select">
+            <option value="en">English</option>
+            <option value="zh">中文</option>
+          </select>
         </div>
       </div>
     </section>
@@ -138,12 +153,13 @@
 
   <footer class="log-panel">
     <div class="log-head">
-      <span>Log</span>
-      <button class="btn btn-mini" id="btn-clear-log">Clear</button>
+      <span data-i18n="log.title">Log</span>
+      <button class="btn btn-mini" id="btn-clear-log" data-i18n="log.clear">Clear</button>
     </div>
     <pre id="log"></pre>
   </footer>
 
+  <script src="i18n.js"></script>
   <script src="control.js"></script>
 </body>
 </html>

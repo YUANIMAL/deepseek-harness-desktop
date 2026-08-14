@@ -2,12 +2,12 @@
 
 const api = window.api;
 let state = null;
-let lang = 'en';
 let pluginFilter = { q: '', category: 'all' };
 
 const $ = (sel) => document.querySelector(sel);
 const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) =>
   ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const t = (k, v) => window.t(k, v);
 
 function log(line) {
   const el = $('#log');
@@ -22,6 +22,12 @@ api.onLog(log);
 async function refresh() {
   try {
     state = await api.getState();
+    const cfgLang = state.config && state.config.language;
+    if (cfgLang && cfgLang !== window.__lang) {
+      window.applyI18n(cfgLang);
+      $('#lang-select').value = cfgLang;
+      $('#lang-select-settings').value = cfgLang;
+    }
     render();
   } catch (err) {
     log(`get-state failed: ${err.message}`);
@@ -30,7 +36,7 @@ async function refresh() {
 
 function desc(plugin) {
   const d = plugin.description || {};
-  return d[lang] || d.en || d.zh || '';
+  return d[window.__lang] || d.en || d.zh || '';
 }
 
 function render() {
@@ -42,32 +48,35 @@ function render() {
 }
 
 function renderHeader() {
-  $('#harness-path').textContent = state.harness.path || '(no harness checkout found)';
+  $('#harness-path').textContent = state.harness.path || t('overview.noHarness');
   const chipBackend = $('#chip-backend');
-  chipBackend.textContent = `backend: ${state.backend.running ? 'running' : 'stopped'}`;
-  chipBackend.className = 'chip ' + (state.backend.running ? 'ok' : 'bad');
+  const running = state.backend.running;
+  chipBackend.textContent = `${t('chip.backend')}: ${running ? t('status.running') : t('status.stopped')}`;
+  chipBackend.className = 'chip ' + (running ? 'ok' : 'bad');
 
   const git = state.git;
   const chipGit = $('#chip-git');
   if (git && git.ok) {
-    chipGit.textContent = `git: ${git.branch}@${git.short} (↓${git.behind ?? '?'} ↑${git.ahead ?? '?'})`;
+    chipGit.textContent = `git: ${git.branch}@${git.short} (\u2193${git.behind ?? '?'} \u2191${git.ahead ?? '?'})`;
     chipGit.className = 'chip ' + ((git.behind ?? 0) === 0 ? 'ok' : 'bad');
   } else {
-    chipGit.textContent = 'git: unavailable';
+    chipGit.textContent = t('git.unavailable');
     chipGit.className = 'chip bad';
   }
 }
 
 function renderOverview() {
-  $('#ov-path').textContent = state.harness.path || '(not found)';
-  $('#ov-cli').textContent = state.harness.hasCliBin ? state.harness.cliBin : '(missing — run pnpm run build)';
+  $('#ov-path').textContent = state.harness.path || t('overview.notFound');
+  $('#ov-cli').textContent = state.harness.hasCliBin ? state.harness.cliBin : t('overview.missingCli');
   const git = state.git;
-  $('#ov-commit').textContent = git && git.ok ? `${git.branch} @ ${git.short} (${git.commit})` : '(unavailable)';
-  $('#ov-sync').textContent = git && git.ok ? `behind ${git.behind ?? '?'}, ahead ${git.ahead ?? '?'}, ${git.clean ? 'clean' : 'dirty'}` : '(unavailable)';
+  $('#ov-commit').textContent = git && git.ok ? `${git.branch} @ ${git.short} (${git.commit})` : t('overview.unavailable');
+  $('#ov-sync').textContent = git && git.ok
+    ? `${t('sync.behind', { b: git.behind ?? '?', a: git.ahead ?? '?' })}, ${git.clean ? t('sync.clean') : t('sync.dirty')}`
+    : t('overview.unavailable');
   $('#ov-url').textContent = `http://127.0.0.1:${state.config.webPort}`;
   $('#ov-backend').textContent = state.backend.running
-    ? `running${state.backend.owned ? ' (owned by this app)' : ' (external)'}`
-    : 'stopped';
+    ? `${t('status.running')}${state.backend.owned ? ' ' + t('status.owned') : ' ' + t('status.external')}`
+    : t('status.stopped');
   $('#ov-profile').textContent = state.plugins.profile;
 }
 
@@ -78,11 +87,11 @@ function renderUpdates() {
 function renderPlugins() {
   const catalog = state.plugins.catalog;
   const sel = $('#pl-category');
-  sel.innerHTML = '<option value="all">All categories</option>';
+  sel.innerHTML = `<option value="all">${esc(t('plugins.allCategories'))}</option>`;
   for (const [key, labels] of Object.entries(catalog.categories || {})) {
     const opt = document.createElement('option');
     opt.value = key;
-    opt.textContent = labels[lang] || labels.en || key;
+    opt.textContent = labels[window.__lang] || labels.en || key;
     sel.append(opt);
   }
   sel.value = pluginFilter.category;
@@ -92,13 +101,11 @@ function renderPlugins() {
   for (const p of ['web', 'web-community']) {
     const opt = document.createElement('option');
     opt.value = p;
-    opt.textContent = `profile: ${p}`;
+    opt.textContent = t('plugins.profile', { p });
     profileSel.append(opt);
   }
   profileSel.value = state.plugins.profile;
   profileSel.disabled = true; // profile is app-level config for now
-
-  $('#btn-lang').textContent = lang === 'en' ? '中文' : 'EN';
 
   const q = pluginFilter.q.toLowerCase();
   const list = catalog.plugins.filter((p) =>
@@ -106,18 +113,18 @@ function renderPlugins() {
     (!q || p.name.toLowerCase().includes(q) || desc(p).toLowerCase().includes(q))
   );
 
-  $('#pl-count').textContent = `${list.length} / ${catalog.plugins.length} plugins`;
+  $('#pl-count').textContent = t('plugins.count', { n: list.length, t: catalog.plugins.length });
 
   const ul = $('#pl-list');
   ul.innerHTML = '';
   for (const p of list) {
     const li = document.createElement('li');
     const badge = p.installed
-      ? '<span class="badge installed">installed</span>'
+      ? `<span class="badge installed">${esc(t('plugins.installed'))}</span>`
       : `<span class="badge">${esc(p.category)}</span>`;
     const action = p.installed
-      ? `<button class="btn" data-action="remove" data-name="${esc(p.name)}">Remove</button>`
-      : `<button class="btn" data-action="install" data-spec="${esc(p.spec)}">Install</button>`;
+      ? `<button class="btn" data-action="remove" data-name="${esc(p.name)}">${esc(t('plugins.remove'))}</button>`
+      : `<button class="btn" data-action="install" data-spec="${esc(p.spec)}">${esc(t('plugins.install'))}</button>`;
     li.innerHTML = `
       <div class="plugin-main">
         <div class="plugin-title">
@@ -137,7 +144,7 @@ function renderPlugins() {
 
 function switchTab(name) {
   document.querySelectorAll('.tab-btn').forEach((b) => b.classList.toggle('active', b.dataset.tab === name));
-  document.querySelectorAll('.tab').forEach((t) => t.classList.toggle('active', t.id === `tab-${name}`));
+  document.querySelectorAll('.tab').forEach((x) => x.classList.toggle('active', x.id === `tab-${name}`));
 }
 
 function setBusy(on) {
@@ -155,45 +162,57 @@ async function act(fn) {
   await refresh();
 }
 
+// --- language switching ---
+async function setLanguage(lang) {
+  window.applyI18n(lang);
+  $('#lang-select').value = lang;
+  $('#lang-select-settings').value = lang;
+  render();
+  try { await api.setLanguage(lang); } catch { /* ignore */ }
+}
+
 // --- wiring ---
 document.querySelectorAll('.tab-btn').forEach((b) => b.addEventListener('click', () => {
   switchTab(b.dataset.tab);
   if (b.dataset.tab === 'settings') loadSettings();
 }));
 
+$('#lang-select').addEventListener('change', (e) => setLanguage(e.target.value));
+$('#lang-select-settings').addEventListener('change', (e) => setLanguage(e.target.value));
+
 $('#btn-open-github').addEventListener('click', () => api.openGitHub());
 $('#btn-open-web').addEventListener('click', () => api.openExternal(`http://127.0.0.1:${state.config.webPort}`));
 $('#btn-backend-start').addEventListener('click', () => act(() => api.backendStart()));
 $('#btn-backend-stop').addEventListener('click', () => act(() => api.backendStop()));
 $('#btn-backend-restart').addEventListener('click', () => act(() => api.backendRestart()));
+
 $('#btn-check').addEventListener('click', async () => {
-  $('#up-status').textContent = 'checking\u2026';
+  $('#up-status').textContent = t('updates.checking');
   const r = await api.updateCheck();
   if (!r.ok) {
-    $('#up-status').textContent = `unavailable: ${r.error}`;
+    $('#up-status').textContent = t('updates.unavailable.short', { m: r.error });
   } else if (r.info) {
-    $('#up-status').textContent = `new version ${r.info.version} available \u2014 downloading\u2026`;
+    $('#up-status').textContent = t('updates.available', { v: r.info.version });
   } else {
-    $('#up-status').textContent = 'up to date';
+    $('#up-status').textContent = t('updates.uptodate');
   }
 });
 
 $('#btn-install').addEventListener('click', () => api.updateInstall());
 
 api.onUpdateEvent((e) => {
-  if (e.type === 'checking') $('#up-status').textContent = 'checking\u2026';
-  else if (e.type === 'available') $('#up-status').textContent = `new version ${e.version} \u2014 downloading\u2026`;
-  else if (e.type === 'not-available') $('#up-status').textContent = 'up to date';
-  else if (e.type === 'progress') $('#up-status').textContent = `downloading\u2026 ${e.percent}%`;
+  if (e.type === 'checking') $('#up-status').textContent = t('updates.checking');
+  else if (e.type === 'available') $('#up-status').textContent = t('updates.available', { v: e.version });
+  else if (e.type === 'not-available') $('#up-status').textContent = t('updates.uptodate');
+  else if (e.type === 'progress') $('#up-status').textContent = t('updates.progress', { p: e.percent });
   else if (e.type === 'downloaded') {
-    $('#up-status').textContent = `version ${e.version} ready \u2014 restart to install`;
+    $('#up-status').textContent = t('updates.downloaded', { v: e.version });
     $('#btn-install').disabled = false;
   } else if (e.type === 'error') {
-    $('#up-status').textContent = `auto-update unavailable (${e.message || 'unsigned build'})`;
+    $('#up-status').textContent = t('updates.unavailable', { m: e.message || 'unsigned build' });
   }
 });
 
-$('#btn-lang').addEventListener('click', () => { lang = lang === 'en' ? 'zh' : 'en'; renderPlugins(); });
 $('#pl-search').addEventListener('input', (e) => { pluginFilter.q = e.target.value; renderPlugins(); });
 $('#pl-category').addEventListener('change', (e) => { pluginFilter.category = e.target.value; renderPlugins(); });
 $('#btn-clear-log').addEventListener('click', () => { $('#log').textContent = ''; });
@@ -221,12 +240,12 @@ $('#pl-list').addEventListener('click', async (e) => {
 async function agentOp(fn, outEl) {
   document.body.classList.add('busy');
   setBusy(true);
-  if (outEl) outEl.textContent = 'running\u2026';
+  if (outEl) outEl.textContent = t('agents.runningDots');
   try {
     const r = await fn();
-    if (outEl) outEl.textContent = r.out || (r.ok ? '(done)' : '(failed)');
+    if (outEl) outEl.textContent = r.out || (r.ok ? t('status.done') : t('status.failed'));
   } catch (err) {
-    if (outEl) outEl.textContent = `error: ${err.message}`;
+    if (outEl) outEl.textContent = t('error', { m: err.message });
   }
   setBusy(false);
   document.body.classList.remove('busy');
@@ -259,7 +278,7 @@ async function loadSettings() {
     $('#settings-file').textContent = r.file || '';
     const c = r.credentials || {};
     $('#s-deepseek-key').value = '';
-    $('#s-deepseek-key').placeholder = c.DEEPSEEK_API_KEY ? `current: ${c.DEEPSEEK_API_KEY}` : 'sk-…';
+    $('#s-deepseek-key').placeholder = c.DEEPSEEK_API_KEY ? t('settings.current', { m: c.DEEPSEEK_API_KEY }) : 'sk-\u2026';
     $('#s-deepseek-url').value = c.DEEPSEEK_BASE_URL || '';
     const extras = [];
     for (const [k, v] of Object.entries(c)) {
@@ -269,7 +288,7 @@ async function loadSettings() {
     $('#s-extra').value = extras.join('\n');
     $('#settings-status').textContent = '';
   } catch (err) {
-    $('#settings-status').textContent = `error: ${err.message}`;
+    $('#settings-status').textContent = t('error', { m: err.message });
   }
 }
 
@@ -279,7 +298,6 @@ $('#btn-settings-save').addEventListener('click', async () => {
   if (key) entries.DEEPSEEK_API_KEY = key;
   const url = $('#s-deepseek-url').value.trim();
   if (url) entries.DEEPSEEK_BASE_URL = url;
-  // extra lines: only send values the user actually typed (skip masked/blank)
   for (const line of $('#s-extra').value.split('\n')) {
     const m = /^\s*([A-Za-z_][A-Za-z0-9_]*)\s*=\s*(.*?)\s*$/.exec(line);
     if (!m) continue;
@@ -288,15 +306,14 @@ $('#btn-settings-save').addEventListener('click', async () => {
   }
   try {
     const r = await api.settingsSave(entries);
-    $('#settings-status').textContent = r.ok ? `saved to ${r.file}` : `error: ${r.error}`;
+    $('#settings-status').textContent = r.ok ? t('settings.saved', { file: r.file }) : t('error', { m: r.error });
     if (r.ok) await loadSettings();
   } catch (err) {
-    $('#settings-status').textContent = `error: ${err.message}`;
+    $('#settings-status').textContent = t('error', { m: err.message });
   }
 });
 
 refresh();
 setInterval(() => {
-  // Light keep-alive: refresh status chips without disturbing an open action.
   if (!document.body.classList.contains('busy')) refresh();
 }, 5000);

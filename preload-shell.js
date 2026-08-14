@@ -10,4 +10,5 @@ contextBridge.exposeInMainWorld('shell', {
   startBackend: () => ipcRenderer.invoke('backend-start'),
   backendUrl: () => ipcRenderer.invoke('backend-url'),
   openControl: () => ipcRenderer.invoke('open-control'),
+  getLanguage: () => ipcRenderer.invoke('get-language'),
 });

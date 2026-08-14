@@ -19,6 +19,7 @@ contextBridge.exposeInMainWorld('api', {
   agentStop: (payload) => ipcRenderer.invoke('agent-stop', payload),
   settingsGet: () => ipcRenderer.invoke('settings-get'),
   settingsSave: (entries) => ipcRenderer.invoke('settings-save', entries),
+  setLanguage: (lang) => ipcRenderer.invoke('set-language', lang),
   updateCheck: () => ipcRenderer.invoke('update-check'),
   updateInstall: () => ipcRenderer.invoke('update-install'),
   onUpdateEvent: (cb) => ipcRenderer.on('update-event', (_event, payload) => cb(payload)),

@@ -50,6 +50,15 @@ h1 { margin: 0; font-size: 17px; }
 .chip.ok { color: var(--good); border-color: rgba(52, 211, 153, 0.4); }
 .chip.bad { color: var(--danger); border-color: rgba(248, 113, 113, 0.4); }
 
+.lang-select {
+  background: var(--panel-2);
+  border: 1px solid var(--border);
+  color: var(--text);
+  padding: 5px 8px;
+  border-radius: 8px;
+  font-size: 12px;
+}
+
 .tabs {
   display: flex;
   gap: 4px;

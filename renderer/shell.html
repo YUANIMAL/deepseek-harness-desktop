@@ -3,13 +3,13 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>DeepSeek Harness</title>
+  <title>DeepSeek Desktop</title>
   <style>
     :root { --bg:#0e1117; --panel:#161b26; --border:#2a3242; --text:#e6eaf2; --muted:#8b96ab; --accent:#4d6bfe; }
     * { box-sizing: border-box; }
     body { margin:0; font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
       background:var(--bg); color:var(--text); min-height:100vh; display:flex; align-items:center; justify-content:center; }
-    .card { background:var(--panel); border:1px solid var(--border); border-radius:14px; padding:36px 40px; max-width:420px; text-align:center; }
+    .card { background:var(--panel); border:1px solid var(--border); border-radius:14px; padding:36px 40px; max-width:440px; text-align:center; }
     .logo { font-size:44px; color:var(--accent); }
     h1 { font-size:18px; margin:12px 0 6px; }
     p { color:var(--muted); font-size:13px; line-height:1.5; }
@@ -22,44 +22,76 @@
       border-radius:50%; animation:spin 0.8s linear infinite; vertical-align:-3px; margin-right:8px; }
     @keyframes spin { to { transform:rotate(360deg); } }
     .hint { font-size:12px; margin-top:14px; }
+    .lang { position:absolute; top:12px; right:14px; }
+    .lang select { background:var(--panel); border:1px solid var(--border); color:var(--text); padding:4px 8px; border-radius:6px; font-size:12px; }
   </style>
 </head>
 <body>
+  <div class="lang">
+    <select id="lang-select">
+      <option value="en">English</option>
+      <option value="zh">中文</option>
+    </select>
+  </div>
   <div class="card">
     <div id="loading">
       <div class="logo">&#9670;</div>
-      <p><span class="spinner"></span>Connecting to DeepSeek Harness&hellip;</p>
+      <p><span class="spinner"></span><span id="txt-connecting">Connecting to DeepSeek Harness&hellip;</span></p>
     </div>
     <div id="offline" style="display:none">
       <div class="logo">&#9670;</div>
-      <h1>Backend offline</h1>
-      <p>The DeepSeek Harness web backend (<code>dsh web</code>) isn&rsquo;t running.<br />
+      <h1 id="txt-offline-title">Backend offline</h1>
+      <p id="txt-offline-body">The DeepSeek Harness web backend (<code>dsh web</code>) isn&rsquo;t running.<br />
       You can start it here, or use the Control Center (Local Agents, updates, and plugins keep working without it).</p>
       <div class="row">
         <button class="primary" id="start">Start backend</button>
         <button id="control">Control Center</button>
       </div>
-      <p class="hint">It reconnects automatically when the backend comes back.</p>
+      <p class="hint" id="txt-hint">It reconnects automatically when the backend comes back.</p>
     </div>
   </div>
   <script>
+    var I18N = {
+      en: {
+        connecting: 'Connecting to DeepSeek Harness\u2026',
+        offlineTitle: 'Backend offline',
+        offlineBody: 'The DeepSeek Harness web backend (dsh web) isn\u2019t running. You can start it here, or use the Control Center (Local Agents, updates, and plugins keep working without it).',
+        start: 'Start backend',
+        control: 'Control Center',
+        hint: 'It reconnects automatically when the backend comes back.',
+      },
+      zh: {
+        connecting: '\u6b63\u5728\u8fde\u63a5 DeepSeek Harness\u2026',
+        offlineTitle: '\u540e\u7aef\u79bb\u7ebf',
+        offlineBody: 'DeepSeek Harness \u7f51\u9875\u540e\u7aef\uff08dsh web\uff09\u672a\u8fd0\u884c\u3002\u4f60\u53ef\u4ee5\u5728\u8fd9\u91cc\u542f\u52a8\u5b83\uff0c\u6216\u4f7f\u7528\u63a7\u5236\u4e2d\u5fc3\uff08\u672c\u5730 Agent\u3001\u66f4\u65b0\u548c\u63d2\u4ef6\u4e0d\u4f9d\u8d56\u5b83\u4ecd\u53ef\u7ee7\u7eed\u4f7f\u7528\uff09\u3002',
+        start: '\u542f\u52a8\u540e\u7aef',
+        control: '\u63a7\u5236\u4e2d\u5fc3',
+        hint: '\u540e\u7aef\u6062\u590d\u540e\u4f1a\u81ea\u52a8\u91cd\u8fde\u3002',
+      },
+    };
+    var lang = 'en';
+    function t(k) { return (I18N[lang] || I18N.en)[k]; }
+    function apply() {
+      document.getElementById('txt-connecting').textContent = t('connecting');
+      document.getElementById('txt-offline-title').textContent = t('offlineTitle');
+      document.getElementById('txt-offline-body').innerHTML = t('offlineBody');
+      document.getElementById('start').textContent = t('start');
+      document.getElementById('control').textContent = t('control');
+      document.getElementById('txt-hint').textContent = t('hint');
+      document.documentElement.lang = lang === 'zh' ? 'zh-CN' : 'en';
+    }
+
     async function healthy(url) {
-      try {
-        const r = await fetch(url, { cache: 'no-store' });
-        return r.status < 500;
-      } catch {
-        return false;
-      }
+      try { const r = await fetch(url, { cache: 'no-store' }); return r.status < 500; }
+      catch { return false; }
     }
     async function go() {
       const url = await window.shell.backendUrl();
-      if (await healthy(url)) {
-        location.replace(url);
-        return;
-      }
+      if (await healthy(url)) { location.replace(url); return; }
       document.getElementById('loading').style.display = 'none';
       document.getElementById('offline').style.display = 'block';
     }
+
     document.getElementById('start').addEventListener('click', async () => {
       document.getElementById('loading').style.display = 'block';
       document.getElementById('offline').style.display = 'none';
@@ -67,7 +99,14 @@
       go();
     });
     document.getElementById('control').addEventListener('click', () => window.shell.openControl());
-    go();
+    document.getElementById('lang-select').addEventListener('change', (e) => { lang = e.target.value; apply(); });
+
+    (async () => {
+      try { const l = await window.shell.getLanguage(); if (l === 'zh' || l === 'en') lang = l; } catch {}
+      document.getElementById('lang-select').value = lang;
+      apply();
+      go();
+    })();
   </script>
 </body>
 </html>
