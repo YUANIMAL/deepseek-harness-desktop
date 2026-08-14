@@ -1,130 +1,89 @@
-# DSH Desktop
+# DeepSeek Desktop
 
-A native **macOS desktop app for [DeepSeek Harness](https://github.com/deepseek-ai/deepseek-harness)** (`dsh`), built with Electron.
+English | [中文](README.zh.md)
 
-It does four things:
+A native **macOS desktop app** for [DeepSeek Harness](https://github.com/deepseek-ai/deepseek-harness). It is **self-contained** — the harness source and a Node.js runtime are bundled inside — so it runs out of the box with nothing else to install.
 
-1. **Wraps the DSH web UI** — the main window loads `http://127.0.0.1:3080`, spawning the `dsh web` backend for you (or attaching to one that is already running).
-2. **Keeps the GitHub source updated** — a Control Center shows the checkout's branch/commit/sync state and can `git fetch` / `git pull --ff-only` + `pnpm install` + `pnpm run build` + restart the backend.
-3. **Community plugin panel** — browses the 117-plugin catalog (`community-plugins/plugins.json`, sourced from [awesome-dsh-plugin](https://github.com/awesome-dsh-plugin/awesome-dsh-plugin)) and installs/removes them with one click via `dsh plugin`.
-4. **Local agent team** — run one local agent, or auto-split a goal into N subtasks (coordinator agent) and run N local agents in parallel, right from the Control Center. Powered by the bundled [`dsh-agent`](agent/README.md) CLI.
+[![Latest release](https://img.shields.io/github/v/release/YUANIMAL/deepseek-harness-desktop?label=release)](https://github.com/YUANIMAL/deepseek-harness-desktop/releases/latest)
+[![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 
-## Requirements
+## Features
 
-- **Node.js** ≥ 22
-- **pnpm** (used by the harness and by `dsh plugin`)
-- **git**
-- A **harness source checkout** (a `git clone` of `deepseek-harness`) so updates work. If you already have one, it is auto-detected; otherwise set `harnessPath` in the config (see below).
+- 🖥️ **Native window for the harness** — wraps the DeepSeek Harness web UI; auto-starts the backend and auto-recovers if it goes down.
+- 🤖 **Local agent team** — run one agent, or auto-split a goal into N subtasks and run them as parallel agents (a coordinator agent plans, workers execute).
+- 🔌 **Community plugins** — browse and install 117 community plugins with one click.
+- 🔑 **API keys** — set your DeepSeek key (and any other provider keys) in the Settings tab; stored locally, never logged.
+- 🔄 **One-click updates** — `git fetch` / `git pull` + rebuild + restart from the Control Center.
+- 📦 **Zero-setup bundle** — ships the DeepSeek Harness source and Node 22, so users don't need `git`, `pnpm`, or Node installed.
 
-## Install & run
+## Install
 
-```sh
-cd dsh-desktop
-npm install        # installs Electron
-npm start          # launches the app
-```
+1. Download the latest `DeepSeek-Desktop-<version>-arm64.dmg` from [Releases](https://github.com/YUANIMAL/deepseek-harness-desktop/releases/latest).
+2. Open the `.dmg` and drag **DeepSeek Desktop** into **Applications**.
+3. On first launch, **right-click → Open** (the build is unsigned; see [Signing](#signing--notarization)).
+4. Enter your DeepSeek API key in **Settings**.
 
-On first launch the app writes `~/.dsh-desktop/config.json`.
+**Requirements:** an Apple Silicon Mac (M1/M2/M3/M4) and a DeepSeek API key.
 
 ## Usage
 
-- **Main window** — the DeepSeek Harness web UI (same app you get from `npx @deepseek-ai/dsh web`).
-- **Control Center** — open via *File → Control Center* (`Cmd+Shift+P`) or *Help → Community plugins*:
-  - **Overview**: harness path, backend status, start/stop/restart backend, open repo/web UI.
-  - **Updates**: git sync state; *Check for updates* (`git fetch`) and *Pull & rebuild* (`git pull --ff-only` → `pnpm install` → `pnpm run build` → restart backend).
-  - **Community Plugins**: search + category filter, EN/中文 descriptions, per-plugin **Install**/**Remove**, link to the plugin's GitHub repo.
-  - **Local Agents**: enter a goal, run it on one agent or on a team (`--n` workers, auto-split by a coordinator unless *broadcast* is checked); *List agents* / *Stop all* manage the persistent fleet. Progress streams to the log panel.
+| Where | What you can do |
+| --- | --- |
+| **Main window** | The DeepSeek Harness web UI (same app as `npx @deepseek-ai/dsh web`) |
+| **Control Center → Overview** | Harness path, backend status, start/stop/restart |
+| **Control Center → Updates** | Check for updates / pull & rebuild from GitHub |
+| **Control Center → Community Plugins** | Search + install/remove the 117-plugin catalog |
+| **Control Center → Local Agents** | Run one agent, or a team (auto-split into N workers) |
+| **Control Center → Settings** | API keys + endpoint |
 
-## Configuration
+Open the Control Center via *File → Control Center* (`⌘⇧P`).
 
-`~/.dsh-desktop/config.json`:
-
-| Key                 | Default                                     | Meaning                                   |
-| ------------------- | ------------------------------------------- | ----------------------------------------- |
-| `harnessPath`       | `""` (auto-detect)                          | Path to the harness `git clone`           |
-| `webPort`           | `3080`                                      | Port the web UI runs on                   |
-| `pluginProfile`     | `web`                                       | Profile plugins are installed into        |
-| `autoStartBackend`  | `true`                                      | Spawn `dsh web` on launch if not running  |
-| `autoUpdateOnLaunch`| `false`                                     | Reserved                                   |
-
-## How updates work
-
-The app treats the harness checkout as the source of truth. "Pull & rebuild" runs, in order:
+## Development
 
 ```sh
-git fetch origin
-git pull --ff-only origin master   # falls back to `git reset --hard origin/master` if ff fails
-pnpm install
-pnpm run build
+npm install        # installs Electron + electron-builder
+npm start          # run the app in dev mode (uses harness/ + runtime/ if present)
+npm run smoke      # headless self-test (no GUI)
+npm run icon       # regenerate the whale icon (scripts/gen-icon.js → icon.icns)
+npm run dist       # build the .dmg
 ```
 
-then restarts the backend. Because it is a plain `git clone`, everything is reproducible and stays in sync with `deepseek-ai/deepseek-harness`.
-
-## How plugins work
-
-Community plugins install into a *profile* (`~/.dsh/profiles/<profile>`), exactly like the CLI:
-
-```sh
-dsh plugin --profile web add github:owner/repo
-```
-
-The panel runs the same command through the harness's built CLI (`apps/cli/lib/bin.js`). "Installed" detection matches the catalog entry's repo name against the profile's dependency list (scoped + case-insensitive).
-
-> Note: 111 plugins are already installed on this machine in the `web-community` profile (see the harness checkout's `community-plugins/` directory). The app defaults to the `web` profile; switch `pluginProfile` in the config to manage a different one.
-
-## Architecture
+The app is an Electron shell around DeepSeek Harness:
 
 ```
 dsh-desktop/
-  main.js             Electron main: windows, menu, IPC, update/backend orchestration
-  preload.js          contextBridge → window.api
-  lib/
-    config.js         ~/.dsh-desktop/config.json
-    harness.js        locate the checkout + built CLI
-    git.js            git status / fetch / pull / clone
-    backend.js        dsh web spawn/stop + port health check
-    plugins.js        catalog parsing + install/list/remove via dsh plugin
-    run.js            child-process helpers
-  renderer/           Control Center UI (vanilla JS, no build step)
+├── main.js               Electron main: windows, IPC, backend/update/agent orchestration
+├── preload.js            contextBridge API for the Control Center
+├── preload-shell.js      minimal API for the main window's shell/offline page
+├── lib/                  plain-Node modules: git, backend, plugins, credentials, …
+├── renderer/             Control Center UI + shell.html (vanilla JS, no build step)
+├── agent/                dsh-agent — the local agent-team controller (vendored)
+├── scripts/              icon generation (pure Node SVG→PNG rasterizer)
+├── assets/               app icon (DeepSeek whale) + source SVG
+├── build/                entitlements + signing docs
+├── .github/workflows/    CI (release.yml)
+└── harness.tar           bundled DeepSeek Harness (regenerated by CI, gitignored)
 ```
 
-The non-Electron logic in `lib/` is plain Node and can be tested directly:
+### How the "self-contained" bundle works
 
-```sh
-node -e "require('./lib/plugins').loadCatalog(require('./lib/harness').detectHarnessPath(null)).plugins.length"
-```
+Two large artifacts are **not** committed (too big) and are regenerated at build time:
 
-## Packaging into a `.dmg`
+- **`harness.tar`** — a full DeepSeek Harness checkout (source + `node_modules`, ~1.6 GB). On first run the app extracts it to `~/.dsh-desktop/harness`.
+- **`runtime/node`** — a Node 22 (arm64) binary. Electron 33 bundles Node 20, which is too old for the harness, so the app ships its own and spawns it directly.
 
-```sh
-npm i -D electron-builder
-CSC_IDENTITY_AUTO_DISCOVERY=false npx electron-builder --mac dmg
-```
+## Releases & CI
 
-Output: `dist/DSH-Desktop-<version>-<arch>.dmg` and the unpacked app at
-`dist/mac-arm64/DSH Desktop.app`.
+Pushing a `v*` tag triggers [`.github/workflows/release.yml`](.github/workflows/release.yml): it rebuilds `harness.tar` (clone + `pnpm install` + `pnpm run build`), downloads Node 22, packages the `.dmg`, and attaches it to the GitHub Release.
 
-The app icon is generated deterministically (no GUI needed):
+If the Apple signing secrets are configured, the build is **signed + notarized** automatically; otherwise it falls back to an unsigned build.
 
-```sh
-npm run icon   # scripts/gen-icon.js → assets/icon-1024.png → assets/icon.icns
-```
+## Signing & notarization
 
-### Unsigned build & Gatekeeper
+This build is **unsigned** by default, so Gatekeeper blocks the first launch (right-click → Open, or `xattr -cr "/Applications/DeepSeek Desktop.app"`).
 
-This build is **not code-signed** (no Apple Developer certificate), so the first
-launch is blocked by Gatekeeper. To open it anyway:
+To ship a signed + notarized build, see **[`SIGNING.md`](SIGNING.md)** — it walks through the Apple Developer certificate, the 5 GitHub secrets to create, and how the CI switches to signed builds automatically.
 
-- **GUI**: right-click the app → *Open* → *Open*, or
-- **Terminal**: `xattr -cr "/Applications/DSH Desktop.app"` then launch.
+## License
 
-For real distribution, sign with an Apple Developer ID and notarize
-(`CSC_IDENTITY_AUTO_DISCOVERY=true` + `notarize`).
-
-## Smoke test (no GUI)
-
-```sh
-npm run smoke
-```
-
-Boots the app headless, prints harness/git/backend/plugin state as JSON, and exits without opening windows.
+[MIT](LICENSE)
