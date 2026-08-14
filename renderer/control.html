@@ -64,19 +64,16 @@
     <!-- Updates -->
     <section id="tab-updates" class="tab">
       <div class="card">
-        <h2>GitHub sync</h2>
+        <h2>App updates</h2>
         <dl class="kv">
-          <dt>Remote</dt><dd id="up-remote">&mdash;</dd>
-          <dt>Branch</dt><dd id="up-branch">&mdash;</dd>
-          <dt>Commit</dt><dd id="up-commit">&mdash;</dd>
-          <dt>Behind / ahead</dt><dd id="up-sync">&mdash;</dd>
-          <dt>Working tree</dt><dd id="up-clean">&mdash;</dd>
+          <dt>Current version</dt><dd id="up-current">&mdash;</dd>
+          <dt>Status</dt><dd id="up-status">&mdash;</dd>
         </dl>
         <div class="row">
-          <button class="btn" id="btn-check">Check for updates</button>
-          <button class="btn btn-accent" id="btn-update">Pull &amp; rebuild</button>
+          <button class="btn btn-accent" id="btn-check">Check for updates</button>
+          <button class="btn" id="btn-install" disabled>Restart &amp; install</button>
         </div>
-        <p class="hint">"Pull &amp; rebuild" runs <code>git pull --ff-only</code> + <code>pnpm install</code> + <code>pnpm run build</code>, then restarts the backend.</p>
+        <p class="hint">Auto-update checks GitHub Releases on launch and every 4 hours. It requires a <strong>signed</strong> build — unsigned builds can&rsquo;t self-update on macOS.</p>
       </div>
     </section>
 

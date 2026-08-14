@@ -72,20 +72,7 @@ function renderOverview() {
 }
 
 function renderUpdates() {
-  const git = state.git;
-  if (!git || !git.ok) {
-    $('#up-remote').textContent = '(unavailable)';
-    $('#up-branch').textContent = '(unavailable)';
-    $('#up-commit').textContent = '(unavailable)';
-    $('#up-sync').textContent = '(unavailable)';
-    $('#up-clean').textContent = '(unavailable)';
-    return;
-  }
-  $('#up-remote').textContent = git.remoteUrl;
-  $('#up-branch').textContent = git.branch;
-  $('#up-commit').textContent = `${git.short} (${git.commit})`;
-  $('#up-sync').textContent = `behind ${git.behind ?? '?'}, ahead ${git.ahead ?? '?'}`;
-  $('#up-clean').textContent = git.clean ? 'clean' : 'dirty (untracked/modified files present)';
+  $('#up-current').textContent = state.version || '\u2014';
 }
 
 function renderPlugins() {
@@ -179,8 +166,32 @@ $('#btn-open-web').addEventListener('click', () => api.openExternal(`http://127.
 $('#btn-backend-start').addEventListener('click', () => act(() => api.backendStart()));
 $('#btn-backend-stop').addEventListener('click', () => act(() => api.backendStop()));
 $('#btn-backend-restart').addEventListener('click', () => act(() => api.backendRestart()));
-$('#btn-check').addEventListener('click', () => act(() => api.checkUpdates()));
-$('#btn-update').addEventListener('click', () => act(() => api.update()));
+$('#btn-check').addEventListener('click', async () => {
+  $('#up-status').textContent = 'checking\u2026';
+  const r = await api.updateCheck();
+  if (!r.ok) {
+    $('#up-status').textContent = `unavailable: ${r.error}`;
+  } else if (r.info) {
+    $('#up-status').textContent = `new version ${r.info.version} available \u2014 downloading\u2026`;
+  } else {
+    $('#up-status').textContent = 'up to date';
+  }
+});
+
+$('#btn-install').addEventListener('click', () => api.updateInstall());
+
+api.onUpdateEvent((e) => {
+  if (e.type === 'checking') $('#up-status').textContent = 'checking\u2026';
+  else if (e.type === 'available') $('#up-status').textContent = `new version ${e.version} \u2014 downloading\u2026`;
+  else if (e.type === 'not-available') $('#up-status').textContent = 'up to date';
+  else if (e.type === 'progress') $('#up-status').textContent = `downloading\u2026 ${e.percent}%`;
+  else if (e.type === 'downloaded') {
+    $('#up-status').textContent = `version ${e.version} ready \u2014 restart to install`;
+    $('#btn-install').disabled = false;
+  } else if (e.type === 'error') {
+    $('#up-status').textContent = `auto-update unavailable (${e.message || 'unsigned build'})`;
+  }
+});
 
 $('#btn-lang').addEventListener('click', () => { lang = lang === 'en' ? 'zh' : 'en'; renderPlugins(); });
 $('#pl-search').addEventListener('input', (e) => { pluginFilter.q = e.target.value; renderPlugins(); });

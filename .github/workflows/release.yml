@@ -135,26 +135,20 @@ jobs:
           rm -rf node-v22.23.1-darwin-arm64 node-v22.23.1-darwin-arm64.tar.gz
           ./runtime/node --version   # sanity check: the binary runs on this arm64 runner
 
-      - name: Package DMG (signed & notarized)
+      - name: Package & publish DMG (signed & notarized)
         if: steps.signing.outputs.enabled == 'true'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           # Signing env (CSC_LINK / APPLE_*) was exported by the step above;
           # package.json has hardenedRuntime + entitlements + notarize: true.
-          npx electron-builder --mac dmg --publish never
+          # --publish always uploads the dmg + latest-mac.yml + blockmap to the
+          # GitHub Release so electron-updater can serve auto-updates.
+          npx electron-builder --mac dmg --publish always
 
-      - name: Package DMG (unsigned)
+      - name: Package & publish DMG (unsigned)
         if: steps.signing.outputs.enabled != 'true'
         env:
           CSC_IDENTITY_AUTO_DISCOVERY: 'false'   # no Apple cert → unsigned build
-        run: |
-          # --publish never: electron-builder would otherwise auto-publish on a
-          # tag build in CI (GITHUB_TOKEN is present); we upload the artifact
-          # ourselves via softprops below to avoid double-publishing.
-          npx electron-builder --mac dmg --publish never
-
-      - name: Upload DMG to GitHub Release
-        uses: softprops/action-gh-release@v2
-        with:
-          # GitHub creates the Release for the pushed tag automatically; we just
-          # attach dist/DeepSeek-Desktop-<version>-arm64.dmg to it.
-          files: dist/*.dmg
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: npx electron-builder --mac dmg --publish always

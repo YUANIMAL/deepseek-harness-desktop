@@ -176,6 +176,7 @@ async function collectState() {
     }
   }
   return {
+    version: app.getVersion(),
     config: cfg,
     harness: {
       path: harnessPath,
@@ -209,6 +210,55 @@ function createMainWindow() {
   // UI when up, and shows an offline/recovery screen when down.
   mainWindow.loadFile(path.join(__dirname, 'renderer', 'shell.html'));
   mainWindow.on('closed', () => { mainWindow = null; });
+}
+
+// Push an app-update event to the Control Center.
+function notifyUpdate(channel, payload) {
+  if (controlWindow && !controlWindow.isDestroyed()) {
+    controlWindow.webContents.send('update-event', { type: channel, ...(payload || {}) });
+  }
+}
+
+// Auto-update via electron-updater + GitHub Releases. Requires a SIGNED app on
+// macOS (Squirrel verifies the code signature); unsigned/dev builds skip it.
+let autoUpdater = null;
+function setupAutoUpdate() {
+  if (!app.isPackaged) {
+    log('Auto-update skipped (dev mode).');
+    return;
+  }
+  try {
+    autoUpdater = require('electron-updater').autoUpdater;
+  } catch (err) {
+    log(`Auto-update unavailable: ${err.message}`);
+    return;
+  }
+
+  autoUpdater.autoDownload = true;
+  autoUpdater.autoInstallOnAppQuit = true;
+
+  autoUpdater.on('checking-for-update', () => notifyUpdate('checking'));
+  autoUpdater.on('update-available', (info) => {
+    log(`Auto-update: ${info.version} available.`);
+    notifyUpdate('available', { version: info.version });
+  });
+  autoUpdater.on('update-not-available', () => notifyUpdate('not-available'));
+  autoUpdater.on('download-progress', (p) => notifyUpdate('progress', { percent: Math.round(p.percent) }));
+  autoUpdater.on('update-downloaded', (info) => {
+    log(`Auto-update: ${info.version} downloaded — will install on quit.`);
+    notifyUpdate('downloaded', { version: info.version });
+  });
+  autoUpdater.on('error', (err) => {
+    log(`Auto-update error: ${err.message} (unsigned builds cannot auto-update).`);
+    notifyUpdate('error', { message: err.message });
+  });
+
+  // First check shortly after launch, then every 4 hours.
+  const check = () => {
+    try { autoUpdater.checkForUpdates().catch(() => {}); } catch { /* unsigned */ }
+  };
+  setTimeout(check, 10000);
+  setInterval(check, 4 * 60 * 60 * 1000);
 }
 
 // Keep the main window in sync with backend health: show the shell when the
@@ -353,6 +403,26 @@ function registerIpc() {
   ipcMain.handle('backend-url', () => `http://127.0.0.1:${cfg.webPort}`);
   ipcMain.handle('open-control', () => { createControlWindow(); return true; });
 
+  ipcMain.handle('update-check', async () => {
+    if (!autoUpdater) return { ok: false, error: 'Auto-update unavailable (dev or unsigned build)' };
+    try {
+      const r = await autoUpdater.checkForUpdates();
+      return { ok: true, info: r && r.updateInfo ? { version: r.updateInfo.version } : null };
+    } catch (err) {
+      return { ok: false, error: err.message };
+    }
+  });
+
+  ipcMain.handle('update-install', () => {
+    if (!autoUpdater) return { ok: false, error: 'Auto-update unavailable' };
+    try {
+      autoUpdater.quitAndInstall();
+      return { ok: true };
+    } catch (err) {
+      return { ok: false, error: err.message };
+    }
+  });
+
   ipcMain.handle('plugin-install', async (_e, spec) => {
     if (!cliBin) return { ok: false, error: 'No built CLI found' };
     log(`Installing plugin ${spec} into profile "${cfg.pluginProfile}"...`);
@@ -472,6 +542,7 @@ async function init() {
   if (cfg.autoStartBackend) await startBackend();
   createMainWindow();
   startHealthMonitor();
+  setupAutoUpdate();
 
   app.on('activate', () => {
     if (BrowserWindow.getAllWindows().length === 0) createMainWindow();

@@ -40,6 +40,13 @@
       "harness.tar"
     ],
     "electronDist": "node_modules/electron/dist",
+    "publish": [
+      {
+        "provider": "github",
+        "owner": "YUANIMAL",
+        "repo": "deepseek-harness-desktop"
+      }
+    ],
     "mac": {
       "target": [
         "dmg"
@@ -67,5 +74,8 @@
         }
       ]
     }
+  },
+  "dependencies": {
+    "electron-updater": "^6.8.9"
   }
 }
