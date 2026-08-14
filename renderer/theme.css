@@ -1,0 +1,37 @@
+/* Shared design tokens, matched to the DeepSeek Harness web UI:
+   accent rgb(65,118,230) (#4176e6, dsw-static-deepseek-500) with highlight
+   rgb(86,134,254) (#5686fe, deepseek-450); dark base #0f1115; light base
+   #f9fafb; 12px radius (--dsl-web-radius); system font stack. */
+
+:root {
+  color-scheme: light dark;
+  --bg: #f9fafb;
+  --panel: #f5f6f7;
+  --panel-2: #ffffff;
+  --border: #e8eaed;
+  --text: #1f2328;
+  --muted: #5f6368;
+  --accent: #4176e6;
+  --accent-2: #5686fe;
+  --accent-soft: #e4edfd;
+  --good: #2f9e44;
+  --warn: #f59f00;
+  --danger: #d6336c;
+  --radius: 12px;
+  --font: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  --font-mono: "SF Mono", "JetBrains Mono", "Fira Code", Menlo, Consolas, monospace;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #0f1115;
+    --panel: #16181d;
+    --panel-2: #1d2129;
+    --border: #2a2e37;
+    --text: #e8eaed;
+    --muted: #9aa0a6;
+    --accent: #4176e6;
+    --accent-2: #5686fe;
+    --accent-soft: rgba(65, 118, 230, 0.16);
+  }
+}

@@ -264,12 +264,18 @@ function createMainWindow() {
     webPreferences: {
       contextIsolation: true,
       nodeIntegration: false,
-      preload: path.join(__dirname, 'preload-shell.js'),
+      webviewTag: true,
+      preload: path.join(__dirname, 'preload.js'),
     },
   });
-  // Load a local shell that health-checks the backend: it redirects to the web
-  // UI when up, and shows an offline/recovery screen when down.
-  mainWindow.loadFile(path.join(__dirname, 'renderer', 'shell.html'));
+  // Desktop shell: embeds the DSH web UI in a <webview>, with a plugins drawer
+  // and offline/recovery handled by renderer/app.html + app.js.
+  mainWindow.loadFile(path.join(__dirname, 'renderer', 'app.html'));
+  // External links (target=_blank etc.) open in the system browser.
+  mainWindow.webContents.setWindowOpenHandler(({ url }) => {
+    if (/^https?:/.test(url)) shell.openExternal(url);
+    return { action: 'deny' };
+  });
   mainWindow.on('closed', () => { mainWindow = null; });
 }
 
@@ -320,23 +326,6 @@ function setupAutoUpdate() {
   };
   setTimeout(check, 10000);
   setInterval(check, 4 * 60 * 60 * 1000);
-}
-
-// Keep the main window in sync with backend health: show the shell when the
-// backend goes down, and return to the web UI when it comes back.
-function startHealthMonitor() {
-  let wasUp = null;
-  setInterval(async () => {
-    if (!mainWindow || mainWindow.isDestroyed()) return;
-    const up = await backend.healthCheck(cfg.webPort);
-    if (wasUp === null) { wasUp = up; return; }
-    if (up && !wasUp) {
-      mainWindow.loadURL(`http://127.0.0.1:${cfg.webPort}`).catch(() => {});
-    } else if (!up && wasUp) {
-      mainWindow.loadFile(path.join(__dirname, 'renderer', 'shell.html'));
-    }
-    wasUp = up;
-  }, 3000);
 }
 
 function createControlWindow() {
@@ -618,7 +607,6 @@ async function init() {
   buildMenu();
   if (cfg.autoStartBackend) await startBackend();
   createMainWindow();
-  startHealthMonitor();
   setupAutoUpdate();
   createTray();
   // Auto-open the Control Center so the sidebar (plugins / agents / settings)

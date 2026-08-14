@@ -99,6 +99,13 @@ window.I18N = {
 
     'log.title': 'Log',
     'log.clear': 'Clear',
+    'shell.controlCenter': 'Control Center',
+    'shell.close': 'Close',
+    'offline.title': 'Backend offline',
+    'offline.body': 'The DeepSeek Harness web backend (dsh web) isn\u2019t running. Start it here, or use the Control Center.',
+    'offline.start': 'Start backend',
+    'offline.hint': 'It reconnects automatically when the backend comes back.',
+    'offline.connecting': 'Connecting to DeepSeek Harness\u2026',
   },
 
   zh: {
@@ -196,6 +203,13 @@ window.I18N = {
 
     'log.title': '日志',
     'log.clear': '清空',
+    'shell.controlCenter': '控制中心',
+    'shell.close': '关闭',
+    'offline.title': '后端离线',
+    'offline.body': 'DeepSeek Harness 网页后端（dsh web）未运行。可在此启动，或使用控制中心。',
+    'offline.start': '启动后端',
+    'offline.hint': '后端恢复后会自动重连。',
+    'offline.connecting': '正在连接 DeepSeek Harness\u2026',
   },
 };
 

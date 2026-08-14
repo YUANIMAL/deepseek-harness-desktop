@@ -24,6 +24,7 @@ contextBridge.exposeInMainWorld('api', {
   updateInstall: () => ipcRenderer.invoke('update-install'),
   onUpdateEvent: (cb) => ipcRenderer.on('update-event', (_event, payload) => cb(payload)),
   openExternal: (url) => ipcRenderer.invoke('open-external', url),
+  openControl: () => ipcRenderer.invoke('open-control'),
   openGitHub: () => ipcRenderer.invoke('open-github'),
   onLog: (cb) => ipcRenderer.on('log', (_event, line) => cb(line)),
 });
