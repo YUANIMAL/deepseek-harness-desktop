@@ -1,0 +1,13 @@
+{
+  "name": "dsh-agent",
+  "version": "0.1.0",
+  "description": "Local agent controller for DeepSeek Harness: spawn and operate multiple local DSH agents (JSON-RPC runtime) from your terminal.",
+  "type": "module",
+  "bin": {
+    "dsh-agent": "bin/dsh-agent.mjs"
+  },
+  "scripts": {
+    "start": "node bin/dsh-agent.mjs"
+  },
+  "license": "MIT"
+}

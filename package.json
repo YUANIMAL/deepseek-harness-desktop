@@ -1,0 +1,67 @@
+{
+  "name": "dsh-desktop",
+  "version": "0.1.0",
+  "description": "macOS desktop app for DeepSeek Harness: wraps the web UI, keeps the GitHub source updated, and manages community plugins.",
+  "main": "main.js",
+  "homepage": "https://github.com/deepseek-ai/deepseek-harness",
+  "scripts": {
+    "start": "electron .",
+    "smoke": "DSH_DESKTOP_SMOKE=1 electron .",
+    "icon": "node scripts/gen-icon.js && bash scripts/build-icns.sh",
+    "dist": "electron-builder --mac dmg"
+  },
+  "author": "dsh-desktop",
+  "license": "MIT",
+  "devDependencies": {
+    "electron": "^33.2.0",
+    "electron-builder": "^26.15.3"
+  },
+  "build": {
+    "appId": "com.dsh.desktop",
+    "productName": "DSH Desktop",
+    "artifactName": "DSH-Desktop-${version}-${arch}.${ext}",
+    "directories": {
+      "output": "dist",
+      "buildResources": "assets"
+    },
+    "files": [
+      "main.js",
+      "preload.js",
+      "preload-shell.js",
+      "lib/**/*",
+      "renderer/**/*",
+      "agent/**/*",
+      "runtime/**/*",
+      "harness.tar"
+    ],
+    "asarUnpack": [
+      "agent/**/*",
+      "runtime/**/*",
+      "harness.tar"
+    ],
+    "electronDist": "node_modules/electron/dist",
+    "mac": {
+      "target": [
+        "dmg"
+      ],
+      "category": "public.app-category.developer-tools",
+      "icon": "assets/icon.icns"
+    },
+    "dmg": {
+      "title": "DSH Desktop ${version}",
+      "icon": "assets/icon.icns",
+      "contents": [
+        {
+          "x": 140,
+          "y": 200
+        },
+        {
+          "x": 420,
+          "y": 200,
+          "type": "link",
+          "path": "/Applications"
+        }
+      ]
+    }
+  }
+}

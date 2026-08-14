@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>DeepSeek Harness</title>
+  <style>
+    :root { --bg:#0e1117; --panel:#161b26; --border:#2a3242; --text:#e6eaf2; --muted:#8b96ab; --accent:#4d6bfe; }
+    * { box-sizing: border-box; }
+    body { margin:0; font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+      background:var(--bg); color:var(--text); min-height:100vh; display:flex; align-items:center; justify-content:center; }
+    .card { background:var(--panel); border:1px solid var(--border); border-radius:14px; padding:36px 40px; max-width:420px; text-align:center; }
+    .logo { font-size:44px; color:var(--accent); }
+    h1 { font-size:18px; margin:12px 0 6px; }
+    p { color:var(--muted); font-size:13px; line-height:1.5; }
+    .row { display:flex; gap:10px; justify-content:center; margin-top:18px; flex-wrap:wrap; }
+    button { background:var(--panel); border:1px solid var(--border); color:var(--text); padding:10px 16px;
+      border-radius:8px; cursor:pointer; font-size:13px; }
+    button.primary { background:linear-gradient(135deg,#4d6bfe,#7c5cff); border-color:transparent; }
+    button:hover { filter:brightness(1.08); }
+    .spinner { display:inline-block; width:16px; height:16px; border:2px solid var(--border); border-top-color:var(--accent);
+      border-radius:50%; animation:spin 0.8s linear infinite; vertical-align:-3px; margin-right:8px; }
+    @keyframes spin { to { transform:rotate(360deg); } }
+    .hint { font-size:12px; margin-top:14px; }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <div id="loading">
+      <div class="logo">&#9670;</div>
+      <p><span class="spinner"></span>Connecting to DeepSeek Harness&hellip;</p>
+    </div>
+    <div id="offline" style="display:none">
+      <div class="logo">&#9670;</div>
+      <h1>Backend offline</h1>
+      <p>The DeepSeek Harness web backend (<code>dsh web</code>) isn&rsquo;t running.<br />
+      You can start it here, or use the Control Center (Local Agents, updates, and plugins keep working without it).</p>
+      <div class="row">
+        <button class="primary" id="start">Start backend</button>
+        <button id="control">Control Center</button>
+      </div>
+      <p class="hint">It reconnects automatically when the backend comes back.</p>
+    </div>
+  </div>
+  <script>
+    async function healthy(url) {
+      try {
+        const r = await fetch(url, { cache: 'no-store' });
+        return r.status < 500;
+      } catch {
+        return false;
+      }
+    }
+    async function go() {
+      const url = await window.shell.backendUrl();
+      if (await healthy(url)) {
+        location.replace(url);
+        return;
+      }
+      document.getElementById('loading').style.display = 'none';
+      document.getElementById('offline').style.display = 'block';
+    }
+    document.getElementById('start').addEventListener('click', async () => {
+      document.getElementById('loading').style.display = 'block';
+      document.getElementById('offline').style.display = 'none';
+      await window.shell.startBackend();
+      go();
+    });
+    document.getElementById('control').addEventListener('click', () => window.shell.openControl());
+    go();
+  </script>
+</body>
+</html>

@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>DSH Control Center</title>
+  <link rel="stylesheet" href="control.css" />
+</head>
+<body>
+  <header class="top">
+    <div class="brand">
+      <span class="logo">&#9670;</span>
+      <div>
+        <h1>DSH Control Center</h1>
+        <p class="sub" id="harness-path">loading&hellip;</p>
+      </div>
+    </div>
+    <div class="chips">
+      <span class="chip" id="chip-backend">backend: &mdash;</span>
+      <span class="chip" id="chip-git">git: &mdash;</span>
+    </div>
+  </header>
+
+  <nav class="tabs">
+    <button class="tab-btn active" data-tab="overview">Overview</button>
+    <button class="tab-btn" data-tab="updates">Updates</button>
+    <button class="tab-btn" data-tab="plugins">Community Plugins</button>
+    <button class="tab-btn" data-tab="agents">Local Agents</button>
+    <button class="tab-btn" data-tab="settings">Settings</button>
+  </nav>
+
+  <main>
+    <!-- Overview -->
+    <section id="tab-overview" class="tab active">
+      <div class="card">
+        <h2>Harness source</h2>
+        <dl class="kv">
+          <dt>Checkout path</dt><dd id="ov-path">&mdash;</dd>
+          <dt>Built CLI</dt><dd id="ov-cli">&mdash;</dd>
+          <dt>Branch / commit</dt><dd id="ov-commit">&mdash;</dd>
+          <dt>Sync</dt><dd id="ov-sync">&mdash;</dd>
+        </dl>
+        <div class="row">
+          <button class="btn" id="btn-open-github">Open GitHub repo</button>
+          <button class="btn" id="btn-open-web">Open web UI</button>
+        </div>
+      </div>
+
+      <div class="card">
+        <h2>Backend (dsh web)</h2>
+        <dl class="kv">
+          <dt>URL</dt><dd id="ov-url">&mdash;</dd>
+          <dt>Status</dt><dd id="ov-backend">&mdash;</dd>
+          <dt>Plugin profile</dt><dd id="ov-profile">&mdash;</dd>
+        </dl>
+        <div class="row">
+          <button class="btn" id="btn-backend-start">Start</button>
+          <button class="btn" id="btn-backend-stop">Stop</button>
+          <button class="btn" id="btn-backend-restart">Restart</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- Updates -->
+    <section id="tab-updates" class="tab">
+      <div class="card">
+        <h2>GitHub sync</h2>
+        <dl class="kv">
+          <dt>Remote</dt><dd id="up-remote">&mdash;</dd>
+          <dt>Branch</dt><dd id="up-branch">&mdash;</dd>
+          <dt>Commit</dt><dd id="up-commit">&mdash;</dd>
+          <dt>Behind / ahead</dt><dd id="up-sync">&mdash;</dd>
+          <dt>Working tree</dt><dd id="up-clean">&mdash;</dd>
+        </dl>
+        <div class="row">
+          <button class="btn" id="btn-check">Check for updates</button>
+          <button class="btn btn-accent" id="btn-update">Pull &amp; rebuild</button>
+        </div>
+        <p class="hint">"Pull &amp; rebuild" runs <code>git pull --ff-only</code> + <code>pnpm install</code> + <code>pnpm run build</code>, then restarts the backend.</p>
+      </div>
+    </section>
+
+    <!-- Plugins -->
+    <section id="tab-plugins" class="tab">
+      <div class="card">
+        <div class="plugins-toolbar">
+          <input id="pl-search" type="search" placeholder="Search plugins&hellip;" />
+          <select id="pl-category"></select>
+          <select id="pl-profile"></select>
+          <button class="btn" id="btn-lang">中文</button>
+          <span class="muted" id="pl-count"></span>
+        </div>
+        <ul id="pl-list" class="plugin-list"></ul>
+      </div>
+    </section>
+
+    <!-- Local Agents -->
+    <section id="tab-agents" class="tab">
+      <div class="card">
+        <h2>Run a local agent team</h2>
+        <label class="field-label" for="agent-goal">Goal / task</label>
+        <textarea id="agent-goal" rows="3" placeholder="e.g. Research three ways to do X and pick the best"></textarea>
+        <div class="row" style="margin-top:10px">
+          <label class="inline">Workers <input id="agent-n" type="number" min="1" max="8" value="2" /></label>
+          <label class="inline"><input id="agent-broadcast" type="checkbox" /> broadcast (same goal to all)</label>
+          <input id="agent-workspace" type="text" placeholder="workspace dir (optional)" />
+        </div>
+        <div class="row" style="margin-top:10px">
+          <button class="btn btn-accent" id="btn-agent-run">Run one agent</button>
+          <button class="btn btn-accent" id="btn-agent-team">Run team (auto-split)</button>
+          <button class="btn" id="btn-agent-list">List agents</button>
+          <button class="btn btn-danger" id="btn-agent-stop">Stop all</button>
+        </div>
+        <p class="hint">Agents are real local DeepSeek Harness runtimes (deepseek-v4). "Run team" auto-splits the goal into N subtasks with a coordinator, then runs them in parallel. Progress streams to the log panel below.</p>
+        <pre id="agent-out" class="agent-out"></pre>
+      </div>
+    </section>
+
+    <!-- Settings -->
+    <section id="tab-settings" class="tab">
+      <div class="card">
+        <h2>API credentials</h2>
+        <p class="hint">Stored in <code id="settings-file"></code>. Keys are masked; base URLs show in full. Leave a key blank to keep the current value. New keys apply to the next agent run.</p>
+
+        <label class="field-label" for="s-deepseek-key">DEEPSEEK_API_KEY</label>
+        <input id="s-deepseek-key" type="password" placeholder="sk-…" autocomplete="off" />
+
+        <label class="field-label" for="s-deepseek-url">DEEPSEEK_BASE_URL <span class="muted">(optional, OpenAI-compatible)</span></label>
+        <input id="s-deepseek-url" type="text" placeholder="https://api.deepseek.com" />
+
+        <label class="field-label" for="s-extra">Other API keys <span class="muted">(one KEY=value per line)</span></label>
+        <textarea id="s-extra" rows="5" placeholder="OPENAI_API_KEY=…&#10;ANTHROPIC_API_KEY=…"></textarea>
+
+        <div class="row" style="margin-top:12px">
+          <button class="btn btn-accent" id="btn-settings-save">Save</button>
+          <span id="settings-status" class="muted"></span>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="log-panel">
+    <div class="log-head">
+      <span>Log</span>
+      <button class="btn btn-mini" id="btn-clear-log">Clear</button>
+    </div>
+    <pre id="log"></pre>
+  </footer>
+
+  <script src="control.js"></script>
+</body>
+</html>

@@ -1,0 +1,13 @@
+node_modules/
+dist/
+out/
+*.log
+.DS_Store
+
+# Bundled artifacts (regenerated; too large for git)
+harness/
+harness.tar
+runtime/
+
+# Generated icon intermediates
+assets/icon.iconset/
