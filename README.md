@@ -21,7 +21,11 @@ A native **macOS desktop app** for [DeepSeek Harness](https://github.com/deepsee
 
 1. Download the latest `DeepSeek-Desktop-<version>-arm64.dmg` from [Releases](https://github.com/YUANIMAL/deepseek-harness-desktop/releases/latest).
 2. Open the `.dmg` and drag **DeepSeek Desktop** into **Applications**.
-3. On first launch, **right-click → Open** (the build is unsigned; see [Signing](#signing--notarization)).
+3. On first launch, **right-click → Open** (the build is ad-hoc signed but not notarized). If macOS still blocks it, run in Terminal:
+   ```sh
+   xattr -cr "/Applications/DeepSeek Desktop.app"
+   ```
+   A bilingual guide is also inside the dmg (`安装说明.txt`).
 4. Enter your DeepSeek API key in **Settings**.
 
 **Requirements:** an Apple Silicon Mac (any M-series chip — M1/M2/M3/M4/M5 or newer) and a DeepSeek API key.

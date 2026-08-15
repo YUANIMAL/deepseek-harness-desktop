@@ -21,7 +21,11 @@
 
 1. 从 [Releases](https://github.com/YUANIMAL/deepseek-harness-desktop/releases/latest) 下载最新的 `DeepSeek-Desktop-<version>-arm64.dmg`。
 2. 打开 `.dmg`，把 **DeepSeek Desktop** 拖进 **应用程序（Applications）**。
-3. 首次启动请**右键 → 打开**（该版本未签名，见[签名与公证](#签名与公证)）。
+3. 首次启动请**右键 → 打开**（该版本已 ad-hoc 签名但未公证）。若仍被拦截，在终端运行：
+   ```sh
+   xattr -cr "/Applications/DeepSeek Desktop.app"
+   ```
+   dmg 里还附有双语说明（`安装说明.txt`）。
 4. 在 **Settings** 里填入你的 DeepSeek API key。
 
 **要求：** Apple 芯片 Mac（任意 M 系列芯片——M1/M2/M3/M4/M5 及更新）+ 一个 DeepSeek API key。
