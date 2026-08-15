@@ -1,6 +1,6 @@
 {
   "name": "dsh-desktop",
-  "version": "0.1.6",
+  "version": "0.1.7",
   "description": "macOS desktop app for DeepSeek Harness: wraps the web UI, keeps the GitHub source updated, and manages community plugins.",
   "main": "main.js",
   "homepage": "https://github.com/deepseek-ai/deepseek-harness",
@@ -42,6 +42,7 @@
       "harness.tar"
     ],
     "electronDist": "node_modules/electron/dist",
+    "afterSign": "scripts/after-sign.js",
     "publish": [
       {
         "provider": "github",
@@ -74,6 +75,12 @@
           "y": 200,
           "type": "link",
           "path": "/Applications"
+        },
+        {
+          "x": 420,
+          "y": 400,
+          "type": "file",
+          "path": "build/安装说明.txt"
         }
       ]
     }
