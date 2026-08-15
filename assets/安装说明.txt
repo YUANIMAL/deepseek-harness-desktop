@@ -1,0 +1,26 @@
+📦 三步安装 / 3-Step Install
+════════════════════════════════
+
+🖐 方式一（最简单）：双击「一键安装.app」
+   首次会被拦一次 → 右键点它 → 打开，之后全自动完成。
+
+方式二（手动）：
+   1. 把 DeepSeek Desktop.app 拖进「应用程序」
+   2. 右键点它 → 打开 → 再点一次「打开」
+   3. 若仍被拦，在终端粘贴：
+      xattr -cr "/Applications/DeepSeek Desktop.app"
+
+启动后：顶栏 ⚙️ 设置 → 填 DeepSeek API key。
+
+────────────────────────────────────
+
+🖐 Option 1 (easiest): double-click 一键安装.app
+   Blocked once? Right-click it → Open, then everything is automatic.
+
+Option 2 (manual):
+   1. Drag DeepSeek Desktop.app into Applications
+   2. Right-click it → Open → click Open again
+   3. If still blocked, paste in Terminal:
+      xattr -cr "/Applications/DeepSeek Desktop.app"
+
+After launch: top bar → ⚙️ Settings → enter your DeepSeek API key.

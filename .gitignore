@@ -11,3 +11,5 @@ runtime/
 
 # Generated icon intermediates
 assets/icon.iconset/
+# Generated one-click installer applet
+assets/一键安装.app/

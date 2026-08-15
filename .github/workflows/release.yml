@@ -135,6 +135,9 @@ jobs:
           rm -rf node-v22.23.1-darwin-arm64 node-v22.23.1-darwin-arm64.tar.gz
           ./runtime/node --version   # sanity check: the binary runs on this arm64 runner
 
+      - name: Build one-click installer (一键安装.app)
+        run: bash scripts/build-installer.sh
+
       - name: Package & publish DMG (signed & notarized)
         if: steps.signing.outputs.enabled == 'true'
         env:

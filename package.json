@@ -1,6 +1,6 @@
 {
   "name": "dsh-desktop",
-  "version": "0.1.7",
+  "version": "0.1.8",
   "description": "macOS desktop app for DeepSeek Harness: wraps the web UI, keeps the GitHub source updated, and manages community plugins.",
   "main": "main.js",
   "homepage": "https://github.com/deepseek-ai/deepseek-harness",
@@ -8,7 +8,7 @@
     "start": "electron .",
     "smoke": "DSH_DESKTOP_SMOKE=1 electron .",
     "icon": "node scripts/gen-icon.js && bash scripts/build-icns.sh",
-    "dist": "electron-builder --mac dmg"
+    "dist": "bash scripts/build-installer.sh && electron-builder --mac dmg"
   },
   "author": "dsh-desktop",
   "license": "MIT",
@@ -65,22 +65,32 @@
     "dmg": {
       "title": "DeepSeek Desktop ${version}",
       "icon": "assets/icon.icns",
+      "window": {
+        "width": 560,
+        "height": 400
+      },
       "contents": [
         {
-          "x": 140,
-          "y": 200
+          "x": 130,
+          "y": 160,
+          "type": "file",
+          "path": "一键安装.app"
         },
         {
-          "x": 420,
-          "y": 200,
+          "x": 400,
+          "y": 160
+        },
+        {
+          "x": 400,
+          "y": 330,
           "type": "link",
           "path": "/Applications"
         },
         {
-          "x": 420,
-          "y": 400,
+          "x": 130,
+          "y": 330,
           "type": "file",
-          "path": "build/安装说明.txt"
+          "path": "安装说明.txt"
         }
       ]
     }
