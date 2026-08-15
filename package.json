@@ -74,7 +74,7 @@
           "x": 130,
           "y": 160,
           "type": "file",
-          "path": "一键安装.app"
+          "path": "assets/一键安装.app"
         },
         {
           "x": 400,
@@ -90,7 +90,7 @@
           "x": 130,
           "y": 330,
           "type": "file",
-          "path": "安装说明.txt"
+          "path": "assets/安装说明.txt"
         }
       ]
     }
