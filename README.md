@@ -1,94 +1,94 @@
 # DeepSeek Desktop
 
-English | [中文](README.zh.md)
+中文 | [English](README.en.md)
 
-A native **macOS desktop app** for [DeepSeek Harness](https://github.com/deepseek-ai/deepseek-harness). It is **self-contained** — the harness source and a Node.js runtime are bundled inside — so it runs out of the box with nothing else to install.
+一个用于 [DeepSeek Harness](https://github.com/deepseek-ai/deepseek-harness) 的原生 **macOS 桌面应用**。它**开箱即用**——harness 源码和 Node.js 运行时都已内置，无需再装任何东西。
 
 [![Latest release](https://img.shields.io/github/v/release/YUANIMAL/deepseek-harness-desktop?label=release)](https://github.com/YUANIMAL/deepseek-harness-desktop/releases/latest)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 
-## Features
+## 功能
 
-- 🖥️ **Native window for the harness** — the main window *is* the DeepSeek Harness web UI, full-bleed with nothing bolted on; it auto-starts the backend and auto-recovers if it goes down.
-- 🤖 **Local agent team** — auto-split a goal into N parallel agents (a coordinator plans, workers execute), then **merge their results into one final answer**.
-- ⚡ **Menu bar + notifications** — stays in the menu bar, notifies you when an agent task finishes, and summons with a global hotkey (⌘⇧Space).
-- 🔌 **Community plugins** — browse and install 117 community plugins with one click.
-- 🔑 **API keys** — set your DeepSeek key (and any other provider keys) in the Settings tab; stored locally, never logged.
-- 🔄 **One-click updates** — `git fetch` / `git pull` + rebuild + restart from the Control Center.
-- 📦 **Zero-setup bundle** — ships the DeepSeek Harness source and Node 22, so users don't need `git`, `pnpm`, or Node installed.
+- 🖥️ **原生窗口承载 harness** —— 主窗口就是 DeepSeek Harness 网页界面本身（全屏呈现，无任何附加层）；自动启动后端，后端挂了自动恢复重连。
+- 🤖 **本地 agent 团队** —— 把一个大目标自动拆成 N 个并行 agent（协调 agent 规划、worker 执行），然后**把结果合并成一份最终答案**。
+- ⚡ **菜单栏 + 通知** —— 常驻菜单栏，agent 任务跑完弹系统通知，全局快捷键（⌘⇧Space）唤起。
+- 🔌 **社区插件** —— 一键浏览、安装 117 个社区插件。
+- 🔑 **API key 设置** —— 在 Settings 里填 DeepSeek key（以及任意其他厂商的 key），本地存储、不落日志。
+- 🔄 **一键更新** —— 在控制中心里 `git fetch` / `git pull` + 重建 + 重启。
+- 📦 **零配置打包** —— 内置 DeepSeek Harness 源码和 Node 22，使用者无需装 git、pnpm、Node。
 
-## Install
+## 安装
 
-1. Download the latest `DeepSeek-Desktop-<version>-arm64.dmg` from [Releases](https://github.com/YUANIMAL/deepseek-harness-desktop/releases/latest).
-2. Open the `.dmg` and drag **DeepSeek Desktop** into **Applications**.
-3. On first launch, **right-click → Open** (the build is ad-hoc signed but not notarized). If macOS still blocks it, run in Terminal:
+1. 从 [Releases](https://github.com/YUANIMAL/deepseek-harness-desktop/releases/latest) 下载最新的 `DeepSeek-Desktop-<version>-arm64.dmg`。
+2. 打开 `.dmg`，把 **DeepSeek Desktop** 拖进 **应用程序（Applications）**。
+3. 首次启动请**右键 → 打开**（该版本已 ad-hoc 签名但未公证）。若仍被拦截，在终端运行：
    ```sh
    xattr -cr "/Applications/DeepSeek Desktop.app"
    ```
-   A bilingual guide is also inside the dmg (`安装说明.txt`).
-4. Enter your DeepSeek API key in **Settings**.
+   dmg 里还附有双语说明（`安装说明.txt`）。
+4. 在 **Settings** 里填入你的 DeepSeek API key。
 
-**Requirements:** an Apple Silicon Mac (any M-series chip — M1/M2/M3/M4/M5 or newer) and a DeepSeek API key.
+**要求：** Apple 芯片 Mac（任意 M 系列芯片——M1/M2/M3/M4/M5 及更新）+ 一个 DeepSeek API key。
 
-## Usage
+## 使用
 
-| Where | What you can do |
+| 位置 | 能做什么 |
 | --- | --- |
-| **Main window** | The DeepSeek Harness web UI (same app as `npx @deepseek-ai/dsh web`) |
-| **Control Center → Overview** | Harness path, backend status, start/stop/restart |
-| **Control Center → Updates** | Check for updates / pull & rebuild from GitHub |
-| **Control Center → Community Plugins** | Search + install/remove the 117-plugin catalog |
-| **Control Center → Local Agents** | Run one agent, or a team (auto-split into N workers) |
-| **Control Center → Settings** | API keys + endpoint |
+| **主窗口** | DeepSeek Harness 网页界面（等同 `npx @deepseek-ai/dsh web`） |
+| **控制中心 → Overview** | harness 路径、后端状态、启动/停止/重启 |
+| **控制中心 → Updates** | 检查更新 / 从 GitHub 拉取并重建 |
+| **控制中心 → Community Plugins** | 搜索、安装/卸载 117 个插件 |
+| **控制中心 → Local Agents** | 跑单个 agent，或团队模式（自动拆成 N 个 worker 并行） |
+| **控制中心 → Settings** | API key 与端点 |
 
-Open the Control Center via *File → Control Center* (`⌘⇧P`).
+通过 *File → Control Center*（`⌘⇧P`）打开控制中心。
 
-## Development
+## 开发
 
 ```sh
-npm install        # installs Electron + electron-builder
-npm start          # run the app in dev mode (uses harness/ + runtime/ if present)
-npm run smoke      # headless self-test (no GUI)
-npm run icon       # regenerate the whale icon (scripts/gen-icon.js → icon.icns)
-npm run dist       # build the .dmg
+npm install        # 安装 Electron + electron-builder
+npm start          # 开发模式运行（若存在 harness/ 和 runtime/ 则直接使用）
+npm run smoke      # 无界面自测
+npm run icon       # 重新生成鲸鱼图标（scripts/gen-icon.js → icon.icns）
+npm run dist       # 构建 .dmg
 ```
 
-The app is an Electron shell around DeepSeek Harness:
+本应用是 DeepSeek Harness 外面的一个 Electron 壳：
 
 ```
 dsh-desktop/
-├── main.js               Electron main: windows, IPC, backend/update/agent orchestration
-├── preload.js            contextBridge API for the Control Center
-├── preload-shell.js      minimal API for the main window's shell/offline page
-├── lib/                  plain-Node modules: git, backend, plugins, credentials, …
-├── renderer/             Control Center UI + shell.html (vanilla JS, no build step)
-├── agent/                dsh-agent — the local agent-team controller (vendored)
-├── scripts/              icon generation (pure Node SVG→PNG rasterizer)
-├── assets/               app icon (DeepSeek whale) + source SVG
-├── build/                entitlements + signing docs
-├── .github/workflows/    CI (release.yml)
-└── harness.tar           bundled DeepSeek Harness (regenerated by CI, gitignored)
+├── main.js               Electron 主进程：窗口、IPC、后端/更新/agent 编排
+├── preload.js            控制中心用的 contextBridge API
+├── preload-shell.js      主窗口 shell/离线页用的最小 API
+├── lib/                  纯 Node 模块：git、backend、plugins、credentials 等
+├── renderer/             控制中心 UI + shell.html（原生 JS，无需构建）
+├── agent/                dsh-agent —— 本地 agent 团队控制器（内置）
+├── scripts/              图标生成（纯 Node SVG→PNG 光栅化）
+├── assets/               应用图标（DeepSeek 鲸鱼）+ 源 SVG
+├── build/                entitlements 与签名文档
+├── .github/workflows/    CI（release.yml）
+└── harness.tar           内置的 DeepSeek Harness（CI 重新生成，已 gitignore）
 ```
 
-### How the "self-contained" bundle works
+### "开箱即用"打包是怎么实现的
 
-Two large artifacts are **not** committed (too big) and are regenerated at build time:
+两个体积很大的产物**不进 git**（太大），在构建时重新生成：
 
-- **`harness.tar`** — a full DeepSeek Harness checkout (source + `node_modules`, ~1.6 GB). On first run the app extracts it to `~/.dsh-desktop/harness`.
-- **`runtime/node`** — a Node 22 (arm64) binary. Electron 33 bundles Node 20, which is too old for the harness, so the app ships its own and spawns it directly.
+- **`harness.tar`** —— 完整的 DeepSeek Harness checkout（源码 + `node_modules`，约 1.6 GB）。应用首次运行时解压到 `~/.dsh-desktop/harness`。
+- **`runtime/node`** —— 一个 Node 22（arm64）二进制。Electron 33 内置的 Node 20 对 harness 太旧，所以应用自带 Node 22 并直接启动它。
 
-## Releases & CI
+## Release 与 CI
 
-Pushing a `v*` tag triggers [`.github/workflows/release.yml`](.github/workflows/release.yml): it rebuilds `harness.tar` (clone + `pnpm install` + `pnpm run build`), downloads Node 22, packages the `.dmg`, and attaches it to the GitHub Release.
+推送 `v*` tag 会触发 [`.github/workflows/release.yml`](.github/workflows/release.yml)：重建 `harness.tar`（clone + `pnpm install` + `pnpm run build`）、下载 Node 22、打包 `.dmg`，并上传到 GitHub Release。
 
-If the Apple signing secrets are configured, the build is **signed + notarized** automatically; otherwise it falls back to an unsigned build.
+如果配置了 Apple 签名 secrets，构建会自动**签名 + 公证**；否则自动回退为未签名构建。
 
-## Signing & notarization
+## 签名与公证
 
-This build is **unsigned** by default, so Gatekeeper blocks the first launch (right-click → Open, or `xattr -cr "/Applications/DeepSeek Desktop.app"`).
+本版本默认 **ad-hoc 签名、未公证**，所以首次启动会被 Gatekeeper 拦截（右键 → 打开，或 `xattr -cr "/Applications/DeepSeek Desktop.app"`）。
 
-To ship a signed + notarized build, see **[`SIGNING.md`](SIGNING.md)** — it walks through the Apple Developer certificate, the 5 GitHub secrets to create, and how the CI switches to signed builds automatically.
+要发布签名 + 公证的版本，请看 **[`SIGNING.md`](SIGNING.md)** —— 里面写了 Apple 开发者证书的申请、要建的 5 个 GitHub secrets，以及 CI 如何自动切换成签名构建。
 
-## License
+## 许可证
 
 [MIT](LICENSE)
