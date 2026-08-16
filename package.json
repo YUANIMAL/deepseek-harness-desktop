@@ -1,6 +1,6 @@
 {
   "name": "dsh-desktop",
-  "version": "0.1.8",
+  "version": "0.1.9",
   "description": "macOS desktop app for DeepSeek Harness: wraps the web UI, keeps the GitHub source updated, and manages community plugins.",
   "main": "main.js",
   "homepage": "https://github.com/deepseek-ai/deepseek-harness",

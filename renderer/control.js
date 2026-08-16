@@ -1,6 +1,5 @@
 'use strict';
 
-const api = window.api;
 let state = null;
 let pluginFilter = { q: '', category: 'all' };
 let liveCatalog = null; // renderer-side cache of plugins fetched from the GitHub dsh-plugin topic

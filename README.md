@@ -9,7 +9,7 @@ A native **macOS desktop app** for [DeepSeek Harness](https://github.com/deepsee
 
 ## Features
 
-- 🖥️ **Native window for the harness** — wraps the DeepSeek Harness web UI; auto-starts the backend and auto-recovers if it goes down.
+- 🖥️ **Native window for the harness** — the main window *is* the DeepSeek Harness web UI, full-bleed with nothing bolted on; it auto-starts the backend and auto-recovers if it goes down.
 - 🤖 **Local agent team** — auto-split a goal into N parallel agents (a coordinator plans, workers execute), then **merge their results into one final answer**.
 - ⚡ **Menu bar + notifications** — stays in the menu bar, notifies you when an agent task finishes, and summons with a global hotkey (⌘⇧Space).
 - 🔌 **Community plugins** — browse and install 117 community plugins with one click.

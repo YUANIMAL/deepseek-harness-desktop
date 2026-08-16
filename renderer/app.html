@@ -3,171 +3,70 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>DeepSeek Desktop</title>
-  <link rel="stylesheet" href="theme.css" />
+  <title>DeepSeek Harness</title>
   <style>
     * { box-sizing: border-box; }
     html, body { height: 100%; margin: 0; }
-    body { font-family: var(--font); background: var(--bg); color: var(--text); overflow: hidden; }
-
-    .shell { display: flex; flex-direction: column; height: 100vh; }
-
-    /* --- top bar --- */
-    .topbar {
-      display: flex; align-items: center; justify-content: space-between;
-      gap: 10px; padding: 8px 14px;
-      background: var(--panel); border-bottom: 1px solid var(--border);
+    body {
+      font-family: -apple-system, "system-ui", "Segoe UI", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", "Helvetica Neue", Helvetica, Arial, sans-serif;
+      background: #151517;
+      color: #f9fafb;
+      overflow: hidden;
+      font-size: 16px;
     }
-    .brand { display: flex; align-items: center; gap: 8px; font-size: 13.5px; font-weight: 600; }
-    .logo { color: var(--accent-2); font-size: 18px; }
-    .topbar-actions { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
-    .chip {
-      background: var(--panel-2); border: 1px solid var(--border);
-      border-radius: 999px; padding: 4px 12px; font-size: 12px; color: var(--muted);
-    }
-    .chip.ok { color: var(--good); border-color: rgba(47, 158, 68, 0.4); }
-    .chip.bad { color: var(--danger); border-color: rgba(214, 51, 108, 0.4); }
-    .btn {
-      background: var(--panel-2); border: 1px solid var(--border); color: var(--text);
-      padding: 7px 13px; border-radius: var(--radius); cursor: pointer; font-size: 13px;
-    }
-    .btn:hover { border-color: var(--accent); }
-    .btn-accent { background: linear-gradient(135deg, var(--accent), var(--accent-2)); border-color: transparent; color: #fff; }
-    .btn-accent:hover { filter: brightness(1.08); }
-    .btn-accent.active { box-shadow: 0 0 0 2px var(--accent-soft); }
-    select {
-      background: var(--panel-2); border: 1px solid var(--border); color: var(--text);
-      padding: 6px 8px; border-radius: var(--radius); font-size: 12.5px;
-    }
-
-    /* --- body: webview + drawer --- */
-    .body { flex: 1; display: flex; min-height: 0; }
-    .webview-wrap { flex: 1; position: relative; min-width: 0; }
+    .stage { position: absolute; inset: 0; }
     webview { width: 100%; height: 100%; }
 
-    /* --- offline / connecting overlay --- */
     .overlay {
       position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;
-      background: var(--bg); z-index: 5;
+      background: #151517; z-index: 5;
     }
+    .overlay[hidden] { display: none; }
     .overlay-card {
-      background: var(--panel); border: 1px solid var(--border); border-radius: var(--radius);
-      padding: 32px 36px; max-width: 420px; text-align: center;
+      background: #2c2c2e; border: 1px solid rgba(255, 255, 255, 0.06);
+      border-radius: 22px; padding: 28px 36px; max-width: 460px; text-align: center;
     }
-    .overlay-card .logo { font-size: 40px; }
-    .overlay-card h1 { font-size: 17px; margin: 10px 0 6px; }
-    .overlay-card p { color: var(--muted); font-size: 13px; line-height: 1.5; }
-    .overlay-card .row { display: flex; gap: 10px; justify-content: center; margin-top: 16px; flex-wrap: wrap; }
+    .overlay-card h1 { font-size: 16px; margin: 0 0 8px; font-weight: 600; }
+    .overlay-card p { color: #cfd3d6; font-size: 14px; line-height: 1.5; margin: 0; }
+    .overlay-card .row { display: flex; gap: 10px; justify-content: center; margin-top: 20px; }
+    .btn {
+      background: #43454a; border: 1px solid rgba(255, 255, 255, 0.12); color: #f9fafb;
+      padding: 8px 16px; border-radius: 12px; cursor: pointer; font-size: 14px;
+      font-family: inherit;
+    }
+    .btn:hover { background: #4b4d52; }
+    .btn-accent { background: #679efe; border-color: transparent; color: #fff; }
+    .btn-accent:hover { background: #7aaaff; }
     .spinner {
-      display: inline-block; width: 15px; height: 15px; border: 2px solid var(--border);
-      border-top-color: var(--accent-2); border-radius: 50%;
+      display: inline-block; width: 14px; height: 14px; border: 2px solid rgba(255, 255, 255, 0.12);
+      border-top-color: #679efe; border-radius: 50%;
       animation: spin 0.8s linear infinite; vertical-align: -2px; margin-right: 8px;
     }
     @keyframes spin { to { transform: rotate(360deg); } }
-
-    /* --- plugins drawer --- */
-    .plugin-panel {
-      width: 400px; flex-shrink: 0; background: var(--panel);
-      border-left: 1px solid var(--border);
-      display: flex; flex-direction: column; min-height: 0;
-    }
-    .plugin-panel[hidden] { display: none; }
-    .panel-head {
-      display: flex; align-items: center; justify-content: space-between;
-      padding: 12px 16px; border-bottom: 1px solid var(--border);
-    }
-    .panel-head h2 { margin: 0; font-size: 14px; font-weight: 600; }
-    .icon-btn {
-      background: none; border: none; color: var(--muted); cursor: pointer;
-      font-size: 16px; padding: 2px 8px; border-radius: 8px;
-    }
-    .icon-btn:hover { color: var(--text); background: var(--panel-2); }
-    .plugins-toolbar { display: flex; gap: 8px; flex-wrap: wrap; padding: 12px 16px 8px; align-items: center; }
-    .plugins-toolbar input[type="search"] {
-      flex: 1; min-width: 120px;
-      background: var(--panel-2); border: 1px solid var(--border); color: var(--text);
-      padding: 8px 10px; border-radius: var(--radius); font-size: 13px;
-    }
-    .hint { color: var(--muted); font-size: 11.5px; padding: 0 16px 8px; margin: 0; }
-    .muted { color: var(--muted); font-size: 12px; }
-    .plugin-list { list-style: none; margin: 0; padding: 0 8px 16px; overflow-y: auto; flex: 1; }
-    .plugin-list li { display: flex; gap: 10px; padding: 10px 8px; border-bottom: 1px solid var(--border); }
-    .plugin-list li:last-child { border-bottom: none; }
-    .plugin-main { flex: 1; min-width: 0; }
-    .plugin-title { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
-    .plugin-name { font-weight: 600; font-size: 13px; }
-    .plugin-owner { color: var(--muted); font-size: 11.5px; }
-    .plugin-desc { color: var(--muted); font-size: 12px; margin: 2px 0 0; }
-    .badge {
-      font-size: 10.5px; border-radius: 6px; padding: 1px 6px;
-      background: var(--panel-2); border: 1px solid var(--border); color: var(--muted);
-    }
-    .badge.installed { color: var(--good); border-color: rgba(47, 158, 68, 0.4); }
-    .plugin-actions { display: flex; flex-direction: column; gap: 6px; flex-shrink: 0; }
-    .btn-mini { padding: 4px 10px; font-size: 12px; }
   </style>
 </head>
 <body>
-  <div class="shell">
-    <header class="topbar">
-      <div class="brand"><span class="logo">&#9670;</span><span>DeepSeek Desktop</span></div>
-      <div class="topbar-actions">
-        <span class="chip" id="backend-chip">&#8212;</span>
-        <button class="btn btn-accent" id="btn-plugins" data-i18n="tab.plugins">Community Plugins</button>
-        <button class="btn" id="btn-control" data-i18n="shell.controlCenter">Control Center</button>
-        <select id="lang-select" title="Language / 语言">
-          <option value="en">English</option>
-          <option value="zh">中文</option>
-        </select>
+  <div class="stage">
+    <webview id="webview"></webview>
+
+    <div class="overlay" id="overlay-connecting">
+      <div class="overlay-card">
+        <p><span class="spinner"></span>Connecting to DeepSeek Harness&hellip;</p>
       </div>
-    </header>
+    </div>
 
-    <div class="body">
-      <div class="webview-wrap">
-        <webview id="webview"></webview>
-
-        <div class="overlay" id="overlay-connecting">
-          <div class="overlay-card">
-            <div class="logo">&#9670;</div>
-            <p><span class="spinner"></span><span data-i18n="offline.connecting">Connecting to DeepSeek Harness&hellip;</span></p>
-          </div>
+    <div class="overlay" id="overlay-offline" hidden>
+      <div class="overlay-card">
+        <h1>Backend offline</h1>
+        <p>The DeepSeek Harness web backend (dsh web) isn&rsquo;t running. Start it here, or open the Control Center from the menu bar.</p>
+        <div class="row">
+          <button class="btn btn-accent" id="btn-backend-start">Start backend</button>
         </div>
-
-        <div class="overlay" id="overlay-offline" hidden>
-          <div class="overlay-card">
-            <div class="logo">&#9670;</div>
-            <h1 data-i18n="offline.title">Backend offline</h1>
-            <p data-i18n="offline.body">The DeepSeek Harness web backend (dsh web) isn&rsquo;t running. Start it here, or use the Control Center.</p>
-            <div class="row">
-              <button class="btn btn-accent" id="btn-backend-start" data-i18n="offline.start">Start backend</button>
-              <button class="btn" id="btn-offline-control" data-i18n="shell.controlCenter">Control Center</button>
-            </div>
-            <p class="hint" data-i18n="offline.hint" style="margin-top:12px">It reconnects automatically when the backend comes back.</p>
-          </div>
-        </div>
+        <p style="margin-top:14px; font-size:12.5px">It reconnects automatically when the backend comes back.</p>
       </div>
-
-      <aside class="plugin-panel" id="plugin-panel" hidden>
-        <div class="panel-head">
-          <h2 data-i18n="tab.plugins">Community Plugins</h2>
-          <button class="icon-btn" id="btn-panel-close" data-i18n="shell.close">&#10005;</button>
-        </div>
-        <div class="plugins-toolbar">
-          <input id="pl-search" type="search" data-i18n-placeholder="plugins.search" placeholder="Search plugins&hellip;" />
-          <select id="pl-category"></select>
-          <button class="btn btn-mini" id="btn-plugins-live" data-i18n="plugins.fetchLive">Fetch latest from GitHub</button>
-        </div>
-        <p class="hint" data-i18n="plugins.liveHint">Live plugins come from the GitHub dsh-plugin topic; the bundled catalog is the verified set. Some live entries may fail to install.</p>
-        <div class="plugins-toolbar" style="padding-top:0">
-          <span class="muted" id="pl-live-status"></span>
-          <span class="muted" id="pl-count"></span>
-        </div>
-        <ul id="pl-list" class="plugin-list"></ul>
-      </aside>
     </div>
   </div>
 
-  <script src="i18n.js"></script>
   <script src="app.js"></script>
 </body>
 </html>
